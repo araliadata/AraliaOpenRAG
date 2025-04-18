@@ -59,11 +59,14 @@ chart_ploting_template = PromptTemplate.from_template(
         b.If field's type is **space, point, line, polygon**.
         - Please carefully consider user's question to fill the most general admin_level_x(lowest number) to "format".
 
-        c.If field's type is **integer, float**
+        c.If field's type is **nominal, integer, float**
+        - "format" is ""
+
+        d.If field's type is **integer, float**
         - "calculation" should be one of:
             ["count", "sum", "avg", "min", "max", "distinct_count"].
    
-        d.If field's type is **nominal**
+        e.If field's type is **nominal**
         - "calculation" should be one of:
             ["count", "distinct_count"]
 
@@ -101,6 +104,7 @@ chart_ploting_template = PromptTemplate.from_template(
                         "calculation": "aggregate_function",
                         "type":"",
                         "format": "",
+                        "operator":"",
                         "value": ["filter_value"]
                     }}
                 ]
@@ -116,35 +120,35 @@ query_generate_template = PromptTemplate.from_template(
     '''
     You are a senior data analyst specializing in statistical data analysis. You excel at extracting insights from data and identifying relationships between different datasets.
 
+    You will be given an input JSON structure representing a potential data analysis setup, including pre-defined 'x', 'y', and 'filter' fields. You will also receive a user question.
+
+    Your task is to generate an output JSON based *strictly* on the input JSON structure and the user question, following these precise rules:
+
     User Question: {question}
-    AI Response: {response}
 
-    Please revise the AI response based on the following rules after considering the user's question:
+    Input JSON: {response}
 
-        1.Only modify "operator", "value" do not change any other parts.
+    Output JSON Generation Rules:
 
-        2.Please carefully consider user's question to fill "value".
+    1.  **Preserve Overall Structure:** The output JSON must maintain the exact same top-level keys (`id`, `name`, `description`, `siteName`, `sourceURL`, `x`, `y`, `filter`) as the input JSON. The content of the `x` and `y` arrays must be copied verbatim from the input.
+    2.  **Maintain Filter Array Integrity:**
+        * The `filter` array in the output JSON **MUST** contain the exact same number of objects as the input `filter` array.
+        * Each object within the output `filter` array **MUST** correspond to an object in the input `filter` array, identified by the **exact same `columnID`**, and in the **same order**.
+        * **DO NOT ADD any new objects** to the `filter` array.
+        * **DO NOT REMOVE any objects** from the `filter` array.
+        * **DO NOT CHANGE the `columnID`** or any other fields (like `type`, `description`, `displayName`, `format`) within the existing filter objects, **EXCEPT** for `operator` and `value`.
+    3.  **Modify Only `operator` and `value`:** For **each** filter object already present in the **input** `filter` array:
+        * Carefully analyze the `User Question` to determine if it specifies conditions related to this filter object's `columnID` (or its `displayName`/`description`).
+        * **If conditions ARE specified** in the user question for this filter:
+            * Set the `operator` based on the filter object's `type`:
+                * `date`/`datetime`/`nominal`/`space`: `operator` MUST be `"in"`
+                * `integer`/`float`: `operator` MUST be "range"/"lt"/"gt"/"lte"/"gte"
+            * Set the `value` based **strictly** on the conditions identified in the user question, formatted correctly for the chosen `operator` and `type`.
+                * For `nominal` type: Please carefully analyze user's question step by step then fill "value". 
+                    Some institutions or buildings may have a name associated with a certain city or district but are physically located elsewhere.
+                    For example, the Taipei Motor Vehicles Office is actually located in New Taipei City. 
+    4.  **Strict Compliance:** Adhere strictly to these rules. Do not introduce any modifications or elements not explicitly allowed. Focus solely on adjusting the `operator` and `value` of the pre-existing filter objects based on the user's query.
 
-        3.If the column type is date/datetime, 
-        - "operator" must be "in"
-
-        4.If the column type is nominal.
-        - "operator" must be "in"          
-        - Please carefully analyze user's question step by step then fill "value".
-          Some institutions or buildings may have a name associated with a certain city or district but are physically located elsewhere.
-          For example, the Taipei Motor Vehicles Office is actually located in New Taipei City. 
-
-        5.If the column type is space.
-        - "operator" must be "in"        
-
-        6.If the column type is integer/float
-        - "operator" must be "range"
-
-    Key Notes:
-
-        - Strictly follow the allowed values.
-
-        - Do not modify other parts of the response (e.g., column names, logic outside the specified fields).
 '''
 )
 

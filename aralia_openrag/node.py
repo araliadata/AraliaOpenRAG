@@ -9,13 +9,17 @@ import requests
 import re
 import base64
 
+def begin_node(state: BasicState):
+    pass
+
 def google_search_agent(state: BasicState):
     try:
         content = ""
         for i, result in enumerate(state['google'].search(state['question'], num=3), 1):
-            content += f"{i}. {result['title']}\n"
-            content += f"   {result['snippet']}\n\n"
-            response = requests.get(result['link'])
+            result_data = result.data
+            content += f"{i}. {result_data['title']}\n"
+            content += f"   {result_data['snippet']}\n\n"
+            response = requests.get(result_data['link'])
 
             if response.status_code == 200:
                 if "application/pdf" in response.headers.get("Content-Type", ""):
@@ -34,7 +38,8 @@ def google_search_agent(state: BasicState):
                 if context:
                     content += f"{context.get_text(strip=True)}\n"
 
-    except:
+    except Exception as e:
+        print(e)
         return None
 
     if setting["debug"]:
@@ -212,135 +217,12 @@ def analytics_execution_agent(state: BasicState):
     if setting["debug"]:
         print("# analytics_execution_agent:\n")
 
-    # 準備admin_level 資訊
-    filtered_datasets = [
-        {"id": item["id"], "name": item["name"], "description": item["description"]} for item in state['response']
-    ]
-
-    prompt = prompts.space_info_template.invoke(
-        {"datasets": filtered_datasets}
-    )
-
-    structured_llm = state["ai"].with_structured_output(
-        schema.dataset_space_info_list
-    )
-
-    for _ in range(5):
-        try:
-            response = structured_llm.invoke(prompt).dict()['datasets']
-            metadata_dict = {item["id"]: item for item in response}
-
-            for data in state['response']:
-                data["admin_level"] = prompts.admin_level[
-                    metadata_dict[data["id"]]['region']][metadata_dict[data["id"]]['language']
-                                                         ]
-            break
-        except:
-            continue
-    else:
-        raise RuntimeError("更新地區失敗")
-
-    prompt = prompts.query_generate_template.invoke(
-        {
-            "question": state['question'],
-            "response": state['response'],
-        }
-    )
-
-    structured_llm = state["ai"].with_structured_output(
-        schema.query_list
-    )
-
-    # 第一次填寫format, calculation
-    for _ in range(5):
-        try:
-            response = structured_llm.invoke(prompt).dict()['querys']
-            for chart in response:
-                for filter in chart["filter"]:
-                    if filter["type"] not in {"date", "datetime", "space"}:
-                        filter.pop("format")
-                    elif filter["type"] == "space":
-                        if filter["format"] not in {
-                            "admin_level_2",
-                            "admin_level_4",
-                            "admin_level_7",
-                            "admin_level_8",
-                            "admin_level_9",
-                            "admin_level_10"
-                        }:
-                            raise
-                    filter.pop("type")
-                    filter.pop("operator")
-                    filter.pop("value")
-
-            # 準備filter-options
-            state["at"].filter_option_tool(response)
-
-            if setting['debug'] == 3:
-                print("# get filter")
-                print(json.dumps(response, ensure_ascii=False, indent=2), end="\n\n")
-
-            break
-        except:
-            continue
-    else:
-        raise RuntimeError("無法成功調用aralia的api取得資料，這意味著參數填寫錯誤。")
-
-    # 第二次填寫filter
-    prompt = prompts.query_generate_template_2.invoke(
-        {
-            "question": state['question'],
-            "response": response,
-        }
-    )
-
-    for _ in range(5):
-        try:
-            response = structured_llm.invoke(prompt).dict()['querys']
-
-            for chart in response:
-                for x in chart["x"]:
-                    if x["type"] not in {"date", "datetime", "space"}:
-                        x.pop("format")
-                for filter in chart["filter"]:
-                    if filter["type"] not in {"date", "datetime", "space"}:
-                        filter.pop("format")
-                    elif filter["type"] == "space":
-                        if filter["format"] not in {
-                            "admin_level_2",
-                            "admin_level_4",
-                            "admin_level_7",
-                            "admin_level_8",
-                            "admin_level_9",
-                            "admin_level_10"
-                        }:
-                            raise
-                chart["filter"] = [chart["filter"]]
-
-            if setting['debug'] == 3:
-                print("# explore api request")
-                print(json.dumps(response, ensure_ascii=False, indent=2), end="\n\n")
-
-            break
-        except:
-            continue
-    else:
-        raise RuntimeError("無法成功調用aralia的api取得資料，這意味著參數填寫錯誤。")
-
-    state["at"].explore_tool(response)
-
-    final_response = {
-        "json_data": response[0]['json_data'],
-        "image": response[0]['image']
-    }
-
-    response[0].pop("image")
+    state["at"].explore_tool(state['response'])
 
     return {
-        "search_results": [response],
-        "final_response": final_response
-    }
+        "search_results": [state['response']],
 
+    }
 
 def interpretation_agent(state: BasicState):
     messages = [
@@ -355,11 +237,9 @@ def interpretation_agent(state: BasicState):
                 資訊: {state['search_results']}
 
                 我已經根據用戶的問題找來了相關的資訊，
-                請詳細分析以上資訊後詳細回答問題，並給出結論。
-                請特別注意"json_data"或者"image"才是實際取得的資料，請幫我仔細分析資料或者圖片內容。
+                請詳細分析以上資訊後詳細回答問題，並給出300字內的結論。
+                請特別注意"json_data"才是實際取得的資料，請幫我仔細分析資料。
                 
-                輸出格式：
-                - 語言請用"{state['language']}"
             """,
         },
     ]
@@ -370,9 +250,6 @@ def interpretation_agent(state: BasicState):
         print("# interpretation_agent:\n")
         print(response.content)
 
-    result = state['final_response']
-    result['text_response'] = response.content
-
     return {
-        "final_response": result
+        "final_response": response.content
     }

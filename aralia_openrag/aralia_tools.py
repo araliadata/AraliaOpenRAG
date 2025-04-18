@@ -16,7 +16,7 @@ plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 
 class AraliaTools:
     # https://k-star.araliadata.io/api, https://tw-air.araliadata.io/api
-    official_url = 'https://tw-air.araliadata.io/api'  # official
+    official_url = 'https://k-star.araliadata.io/api'  # official
 
     def __init__(self, username, password):
         self.username = username
@@ -201,7 +201,7 @@ class AraliaTools:
                 if setting['debug'] == 3:
                     print("# get data", end = "\n\n")
                 response = self.post(
-                    item['sourceURL'] + "/exploration/" + item['id'] + '?start=' + str(start) + '&pageSize=1000', item)
+                    item['sourceURL'] + "/api/exploration/" + item['id'] + '?start=' + str(start) + '&pageSize=1000', item)
                 total_response.extend(response)
                 break
                 # if len(response) == 1000:
@@ -412,7 +412,6 @@ class AraliaTools:
                     base64_string = base64.b64encode(image_file.read()).decode('utf-8')  
 
                 item["json_data"] = df.to_json(force_ascii=False)
-                item["image"] = base64_string
 
             if setting['debug'] == 3:
                 print("已生成圖片與表格", end = "\n\n")
