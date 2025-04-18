@@ -1,6 +1,6 @@
 import json
 import sys
-from config import setting
+from .config import setting
 from . import prompts
 from .state import BasicState
 from . import schema
