@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import ast
 import numpy as np
 from typing import List
-from config import setting
+from .config import setting
 
 plt.rcParams['font.sans-serif'] = ['Noto Sans CJK JP']  # 設定字型
 plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
