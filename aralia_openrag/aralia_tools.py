@@ -148,7 +148,7 @@ class AraliaTools:
     def column_metadata_tool(self, datasets: List[any]):
         for dataset in datasets:
             if column_metadata := self.get(
-                f"{dataset["sourceURL"]}/api/dataset/{dataset["id"]}"
+                f"{dataset['sourceURL']}/api/dataset/{dataset['id']}"
             ):
                 cols_exclude = ["id", "name", "datasetID", "visible",
                                 "ordinalPosition", "sortingSettingID"]
