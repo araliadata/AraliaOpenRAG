@@ -1,6 +1,5 @@
 import json
 import sys
-from .config import setting
 from . import prompts
 from .state import BasicState
 from . import schema
@@ -42,7 +41,7 @@ def google_search_agent(state: BasicState):
         print(e)
         return None
 
-    if setting["debug"]:
+    if state['debug']:
         print("# google_search_agent:\n")
         print(content)
 
@@ -80,7 +79,7 @@ def aralia_search_agent(state: BasicState):
     else:
         raise RuntimeError("無法找到可能回答問題的資料集，程式終止")
 
-    if setting["debug"]:
+    if state['debug']:
         print("# aralia_search_agent:\n")
         print([item["name"] for item in datasets.values()], end="\n\n")
         print([item["name"] for item in filtered_datasets], end="\n\n")
@@ -108,7 +107,7 @@ def analytics_planning_agent(state: BasicState):
         try:
             response = state["ai"].invoke(plot_chart_prompt)
 
-            if setting['debug'] == 3:
+            if state['debug']:
                 print(response.content, end="\n\n")
 
             response_json = json.loads(list(re.finditer(
@@ -158,13 +157,13 @@ def analytics_planning_agent(state: BasicState):
             ]
             break
         except Exception as e:
-            if setting['debug'] == 3:
+            if state['debug']:
                 print(f"發生錯誤: {e}")
             continue
     else:
         raise RuntimeError("AI模型無法產出準確的api調用")
 
-    if setting["debug"]:
+    if state['debug']:
         print("# analytics_planning_agent:\n")
         print(json.dumps(filtered_datasets, ensure_ascii=False, indent=2), end="\n\n")
 
@@ -204,7 +203,7 @@ def filter_decision_agent(state: BasicState):
     else:
         raise RuntimeError("AI模型無法選擇準確的filter value")
 
-    if setting['debug'] == 3:
+    if state['debug']:
         print("# filter_decision_agent\n")
         print(json.dumps(response, ensure_ascii=False, indent=2), end="\n\n")
 
@@ -214,7 +213,7 @@ def filter_decision_agent(state: BasicState):
 
 
 def analytics_execution_agent(state: BasicState):
-    if setting["debug"]:
+    if state['debug']:
         print("# analytics_execution_agent:\n")
 
     state["at"].explore_tool(state['response'])
@@ -233,22 +232,23 @@ def interpretation_agent(state: BasicState):
         {
             "role": "user",
             "content": f"""
-                問題: ***{state['question']}***
-                資訊: {state['search_results']}
+                Question: ***{state['question']}***
+                Information: {state['search_results']}
 
-                我已經根據用戶的問題找來了相關的資訊，
-                請詳細分析以上資訊後詳細回答問題，並給出300字內的結論。
-                請特別注意"json_data"才是實際取得的資料，請幫我仔細分析資料。
-                
+                I have already gathered relevant information based on the user's question.
+                Please analyze the information above in detail, then provide a detailed answer to the question, and give a conclusion within 300 words.
+                Please pay special attention that "json_data" is the actual retrieved data; please help me analyze this data carefully.
+                Please provide with English.
             """,
         },
     ]
 
     response = state["ai"].invoke(messages)
 
-    if setting["debug"]:
+    if state['debug']:
         print("# interpretation_agent:\n")
-        print(response.content)
+        
+    print(response.content)
 
     return {
         "final_response": response.content

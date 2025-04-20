@@ -12,6 +12,8 @@ class BasicState(TypedDict):
     at: Any  # aralia tools
     google: Any
     final_response: Any
+    url: Any
+    debug: Any
 
 
 # class AssistantState(BasicState):

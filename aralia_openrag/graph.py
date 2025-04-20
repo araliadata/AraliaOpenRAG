@@ -59,7 +59,7 @@ class AssistantGraph:
         # request['ai'] = ChatOpenAI(
         #     api_key=request['ai'], model="gpt-4.1", temperature=0)
         request['at'] = aralia_tools.AraliaTools(
-            request['username'], request['password'])
+            request['username'], request['password'], request['url'])
 
         request['google'] = google_custom_search.CustomSearch(
             google_custom_search.RequestsAdapter(request['google_key'], request['goole_engine']))
