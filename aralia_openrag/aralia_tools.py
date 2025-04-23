@@ -231,3 +231,58 @@ class AraliaTools:
                       index=False, encoding="utf-8-sig")
 
             item["json_data"] = df.head(400).to_json(force_ascii=False)
+
+    def landmark_tool(url, secret_key):
+        """
+        Retrieve landmark metadata and chart data from Aralia’s Landmark API via a share-link URL.
+
+        This function locates the “share-link” segment in the provided URL, trims it to the base API
+        endpoint, and issues two GET requests: one for metadata and one for up to 300 chart data points.
+        It then filters and structures the combined result into a single dictionary.
+
+        Parameters
+        ----------
+        url : str
+            The full Aralia Landmark share-link URL (must contain “share-link”).
+        secret_key : str
+            The user’s Planet API key, sent as the Authorization header.
+
+        Returns
+        -------
+        dict
+            A dictionary with the following keys:
+            
+            - name (str): The landmark’s name.
+            - chart_columns (list of str): Column names from the metadata.
+            - chart_data (list of dict): A list of up to 300 data points, each containing only
+            the keys 'x0', 'x1', 'x2', 'y0', 'y1'.
+
+        """
+        start_index = url.rfind('share-link')
+
+        url = url[:start_index + 33]
+
+        headers = {
+            'Authorization': secret_key
+        }
+
+        # get metadata
+        response = requests.request("GET", url + "/metadata", headers=headers)
+
+        metadata = response.json()['data']
+
+        # get chart data
+        response = requests.request("GET", url + "/chart-data?pageSize=300", headers=headers)
+
+        chart_data = response.json()['data']['list']
+
+        chart = {
+            'name': metadata['name'],
+            'chart_columns': metadata['dataColumns'],
+            'chart_data': [
+                {k: v for k, v in item.items() if k in {'x0', 'x1', 'x2', 'y0', 'y1'}}
+                for item in chart_data
+            ]
+        }
+
+        return chart
