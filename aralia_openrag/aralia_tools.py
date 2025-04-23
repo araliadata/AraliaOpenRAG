@@ -232,7 +232,7 @@ class AraliaTools:
 
             item["json_data"] = df.head(400).to_json(force_ascii=False)
 
-    def landmark_tool(url, secret_key):
+    def landmark_tool(self, url, secret_key):
         """
         Retrieve landmark metadata and chart data from Aralia’s Landmark API via a share-link URL.
 
