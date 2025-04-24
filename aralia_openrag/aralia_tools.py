@@ -14,7 +14,7 @@ plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 
 
 class AraliaTools:
-    # https://k-star.araliadata.io/api, https://tw-air.araliadata.io/api
+    # https://tw-air.araliadata.io/api
     
     def __init__(self, username, password, url):
         self.username = username
@@ -232,60 +232,60 @@ class AraliaTools:
 
             item["json_data"] = df.head(400).to_json(force_ascii=False)
 
-    def landmark_tool(self, landmark_url, secret_key):
-        """
-        Retrieve landmark metadata and chart data from Aralia’s Landmark API via a Landmark share-link URL.
+def landmark_tool(landmark_url, secret_key):
+    """
+    Retrieve landmark metadata and chart data from Aralia’s Landmark API via a Landmark share-link URL.
 
-        This function locates the “share-link” segment in the provided URL, trims it to the base API
-        endpoint, and issues two GET requests: one for metadata and one for up to 300 chart data points.
-        It then filters and structures the combined result into a single dictionary.
+    This function locates the “share-link” segment in the provided URL, trims it to the base API
+    endpoint, and issues two GET requests: one for metadata and one for up to 300 chart data points.
+    It then filters and structures the combined result into a single dictionary.
 
-        Parameters
-        ----------
-        landmark_url : str
-            The full Aralia Landmark share-link URL (must contain “share-link”).
-        secret_key : str
-            The user’s Planet API key, sent as the Authorization header.
+    Parameters
+    ----------
+    landmark_url : str
+        The full Aralia Landmark share-link URL (must contain “share-link”).
+    secret_key : str
+        The user’s Planet API key, sent as the Authorization header.
 
-        Returns
-        -------
-        dict
-            A dictionary with the following keys:
-            
-            - name (str): The landmark’s name.
-            - chart_columns (list of str): Column names from the metadata.
-            - chart_data (list of dict): A list of up to 300 data points, each containing only
-            the keys 'x0', 'x1', 'x2', 'y0', 'y1'.
+    Returns
+    -------
+    dict
+        A dictionary with the following keys:
+        
+        - name (str): The landmark’s name.
+        - chart_columns (list of str): Column names from the metadata.
+        - chart_data (list of dict): A list of up to 300 data points, each containing only
+        the keys 'x0', 'x1', 'x2', 'y0', 'y1'.
 
-        """
-        start_index = landmark_url.rfind('share-link')
+    """
+    start_index = landmark_url.rfind('share-link')
 
-        if start_index == -1:
-            raise ValueError("Invalid Share Link URL: Please copy and paste the totality of the Landmark URL share link.")
+    if start_index == -1:
+        raise ValueError("Invalid Share Link URL: Please copy and paste the totality of the Landmark URL share link.")
 
-        landmark_url = landmark_url[:start_index + 33]
+    landmark_url = landmark_url[:start_index + 33]
 
-        headers = {
-            'Authorization': secret_key
-        }
+    headers = {
+        'Authorization': secret_key
+    }
 
-        # get metadata
-        response = requests.request("GET", landmark_url + "/metadata", headers=headers)
+    # get metadata
+    response = requests.request("GET", landmark_url + "/metadata", headers=headers)
 
-        metadata = response.json()['data']
+    metadata = response.json()['data']
 
-        # get chart data
-        response = requests.request("GET", landmark_url + "/chart-data?pageSize=300", headers=headers)
+    # get chart data
+    response = requests.request("GET", landmark_url + "/chart-data?pageSize=300", headers=headers)
 
-        chart_data = response.json()['data']['list']
+    chart_data = response.json()['data']['list']
 
-        chart = {
-            'name': metadata['name'],
-            'chart_columns': metadata['dataColumns'],
-            'chart_data': [
-                {k: v for k, v in item.items() if k in {'x0', 'x1', 'x2', 'y0', 'y1'}}
-                for item in chart_data
-            ]
-        }
+    chart = {
+        'name': metadata['name'],
+        'chart_columns': metadata['dataColumns'],
+        'chart_data': [
+            {k: v for k, v in item.items() if k in {'x0', 'x1', 'x2', 'y0', 'y1'}}
+            for item in chart_data
+        ]
+    }
 
-        return chart
+    return chart
