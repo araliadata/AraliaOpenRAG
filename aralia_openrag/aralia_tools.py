@@ -232,9 +232,9 @@ class AraliaTools:
 
             item["json_data"] = df.head(400).to_json(force_ascii=False)
 
-    def landmark_tool(self, url, secret_key):
+    def landmark_tool(self, landmark_url, secret_key):
         """
-        Retrieve landmark metadata and chart data from Aralia’s Landmark API via a share-link URL.
+        Retrieve landmark metadata and chart data from Aralia’s Landmark API via a Landmark share-link URL.
 
         This function locates the “share-link” segment in the provided URL, trims it to the base API
         endpoint, and issues two GET requests: one for metadata and one for up to 300 chart data points.
@@ -242,7 +242,7 @@ class AraliaTools:
 
         Parameters
         ----------
-        url : str
+        landmark_url : str
             The full Aralia Landmark share-link URL (must contain “share-link”).
         secret_key : str
             The user’s Planet API key, sent as the Authorization header.
@@ -258,21 +258,24 @@ class AraliaTools:
             the keys 'x0', 'x1', 'x2', 'y0', 'y1'.
 
         """
-        start_index = url.rfind('share-link')
+        start_index = landmark_url.rfind('share-link')
 
-        url = url[:start_index + 33]
+        if start_index == -1:
+            raise ValueError("Invalid Share Link URL: Please copy and paste the totality of the Landmark URL share link.")
+
+        landmark_url = landmark_url[:start_index + 33]
 
         headers = {
             'Authorization': secret_key
         }
 
         # get metadata
-        response = requests.request("GET", url + "/metadata", headers=headers)
+        response = requests.request("GET", landmark_url + "/metadata", headers=headers)
 
         metadata = response.json()['data']
 
         # get chart data
-        response = requests.request("GET", url + "/chart-data?pageSize=300", headers=headers)
+        response = requests.request("GET", landmark_url + "/chart-data?pageSize=300", headers=headers)
 
         chart_data = response.json()['data']['list']
 

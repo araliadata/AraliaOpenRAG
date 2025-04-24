@@ -6,7 +6,7 @@ from . import node
 from operator import add
 from typing import Any, Dict, TypedDict, Annotated
 from .state import BasicState
-import google_custom_search
+# import google_custom_search
 
 
 class AssistantGraph:
@@ -61,7 +61,7 @@ class AssistantGraph:
         request['at'] = aralia_tools.AraliaTools(
             request['username'], request['password'], request['url'])
 
-        request['google'] = google_custom_search.CustomSearch(
-            google_custom_search.RequestsAdapter(request['google_key'], request['goole_engine']))
+        # request['google'] = google_custom_search.CustomSearch(
+        #     google_custom_search.RequestsAdapter(request['google_key'], request['goole_engine']))
 
         return self.graph.invoke(request)
