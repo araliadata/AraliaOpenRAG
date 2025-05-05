@@ -1,6 +1,7 @@
 from langgraph.graph import StateGraph, END
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from . import aralia_tools
 from . import node
 from operator import add
@@ -54,14 +55,22 @@ class AssistantGraph:
         # print(graph.get_graph().draw_mermaid()) #set['debug']
 
     def __call__(self, request):
-        request['ai'] = ChatGoogleGenerativeAI(
-            api_key=request['ai'], model="gemini-2.0-flash", temperature=0)
-        # request['ai'] = ChatOpenAI(
-        #     api_key=request['ai'], model="gpt-4.1", temperature=0)
+        # 根據API key的前綴來判定使用哪家LLM
+        api_key = request['ai']
+        if api_key.startswith('sk-ant-'):
+            # Anthropic Claude
+            request['ai'] = ChatAnthropic(
+                api_key=api_key, model="claude-3-5-sonnet-20240620", temperature=0)
+        elif api_key.startswith('AIza'):
+            # Google Gemini
+            request['ai'] = ChatGoogleGenerativeAI(
+                api_key=api_key, model="gemini-2.0-flash", temperature=0)
+        else:
+            # 預設使用OpenAI
+            request['ai'] = ChatOpenAI(
+                api_key=api_key, model="gpt-4o", temperature=0)
+            
         request['at'] = aralia_tools.AraliaTools(
             request['username'], request['password'], request['url'])
-
-        # request['google'] = google_custom_search.CustomSearch(
-        #     google_custom_search.RequestsAdapter(request['google_key'], request['goole_engine']))
 
         return self.graph.invoke(request)
