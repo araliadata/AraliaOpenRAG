@@ -77,7 +77,7 @@ def aralia_search_agent(state: BasicState):
         except:
             continue
     else:
-        raise RuntimeError("無法找到可能回答問題的資料集，程式終止")
+        raise RuntimeError("Aralia Search Agent unable to find a dataset capable of answering the query; the program has terminated.")
 
     if state['debug']:
         print("# aralia_search_agent:\n")
@@ -93,7 +93,7 @@ def analytics_planning_agent(state: BasicState):
     datasets = state["at"].column_metadata_tool(state['response'])
 
     if not datasets:
-        raise RuntimeError("無法跟搜尋到的星球要資料，程式終止")
+        raise RuntimeError("Analytics Planning Agent unable to find data; the program has terminated.")
     
     plot_chart_prompt = prompts.chart_ploting_template.invoke(  # extract column
         {
@@ -161,7 +161,7 @@ def analytics_planning_agent(state: BasicState):
                 print(f"發生錯誤: {e}")
             continue
     else:
-        raise RuntimeError("AI模型無法產出準確的api調用")
+        raise RuntimeError("AI unable to generate accurate API calls.")
 
     if state['debug']:
         print("# analytics_planning_agent:\n")
@@ -201,7 +201,7 @@ def filter_decision_agent(state: BasicState):
         except:
             continue
     else:
-        raise RuntimeError("AI模型無法選擇準確的filter value")
+        raise RuntimeError("AI unable to select precise filter values.")
 
     if state['debug']:
         print("# filter_decision_agent\n")
