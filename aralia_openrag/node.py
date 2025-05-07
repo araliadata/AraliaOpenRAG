@@ -7,52 +7,24 @@ from bs4 import BeautifulSoup
 import requests
 import re
 import base64
-
-def begin_node(state: BasicState):
-    pass
-
-def google_search_agent(state: BasicState):
-    try:
-        content = ""
-        for i, result in enumerate(state['google'].search(state['question'], num=3), 1):
-            result_data = result.data
-            content += f"{i}. {result_data['title']}\n"
-            content += f"   {result_data['snippet']}\n\n"
-            response = requests.get(result_data['link'])
-
-            if response.status_code == 200:
-                if "application/pdf" in response.headers.get("Content-Type", ""):
-                    continue
-                soup = BeautifulSoup(response.text, 'html.parser')
-                if soup.find('article'):
-                    context = soup.find('article')
-                elif soup.find('main'):
-                    context = soup.find('main')
-                elif soup.find('div', class_='content'):
-                    context = soup.find('div', class_='content')
-                elif soup.find('div', class_='article'):
-                    context = soup.find('div', class_='article')
-                elif soup.find('div', id='content'):
-                    context = soup.find('div', id='content')
-                if context:
-                    content += f"{context.get_text(strip=True)}\n"
-
-    except Exception as e:
-        print(e)
-        return None
-
-    if state['debug']:
-        print("# google_search_agent:\n")
-        print(content)
-
-    return {
-        "search_results": [content]
-    }
-
+import textwrap
 
 def aralia_search_agent(state: BasicState):
     # search multi dataset
     datasets = state["at"].search_tool(state["question"])
+
+    if state['debug']:
+        print(
+            textwrap.dedent(
+                f'''
+                    I received your question: "{state['question']}"
+
+                    To answer your question, I performed the following steps:
+                    1. Searched for available datasets, initially finding {len(datasets)} datasets.
+                '''
+            ), 
+            end=""
+        )
 
     extract_prompt = prompts.simple_datasets_extract_template.invoke(
         {
@@ -77,12 +49,16 @@ def aralia_search_agent(state: BasicState):
         except:
             continue
     else:
-        raise RuntimeError("Aralia Search Agent unable to find a dataset capable of answering the query; the program has terminated.")
+        raise RuntimeError("Unable to find datasets that could answer the question, program terminated")
 
     if state['debug']:
-        print("# aralia_search_agent:\n")
-        print([item["name"] for item in datasets.values()], end="\n\n")
-        print([item["name"] for item in filtered_datasets], end="\n\n")
+        print(
+            textwrap.dedent(
+                f'''
+                    2.Filtered out the following datasets most relevant to the question {[item["name"] for item in filtered_datasets]}。
+                '''
+            )
+        )
 
     return {
         "response": filtered_datasets
@@ -93,8 +69,12 @@ def analytics_planning_agent(state: BasicState):
     datasets = state["at"].column_metadata_tool(state['response'])
 
     if not datasets:
-        raise RuntimeError("Analytics Planning Agent unable to find data; the program has terminated.")
+        raise RuntimeError("Unable to retrieve data from the searched planet, program terminated")
     
+
+    if state['debug']:
+        print("3.I am carefully analyzing which data to obtain for chart plotting, please wait a moment.\n")
+
     plot_chart_prompt = prompts.chart_ploting_template.invoke(  # extract column
         {
             "question": state["question"], 
@@ -106,9 +86,6 @@ def analytics_planning_agent(state: BasicState):
     for _ in range(5):
         try:
             response = state["ai"].invoke(plot_chart_prompt)
-
-            if state['debug']:
-                print(response.content, end="\n\n")
 
             response_json = json.loads(list(re.finditer(
                 r'```json(.*?)```', response.content, re.DOTALL))[-1].group(1))
@@ -136,7 +113,7 @@ def analytics_planning_agent(state: BasicState):
                         }
                         for y in chart['y'] 
                         if y['type'] in ["integer", "float"] and (
-                            y['calculation'] in prompts.format['calculation'] or (_ := None)  # 檢查計算方法
+                            y['calculation'] in prompts.format['calculation'] or (_ := None)  # Check calculation method
                         )
                     ],
                     "filter": [
@@ -158,15 +135,11 @@ def analytics_planning_agent(state: BasicState):
             break
         except Exception as e:
             if state['debug']:
-                print(f"發生錯誤: {e}")
+                print(f"Error occurred: {e}")
             continue
     else:
-        raise RuntimeError("AI unable to generate accurate API calls.")
-
-    if state['debug']:
-        print("# analytics_planning_agent:\n")
-        print(json.dumps(filtered_datasets, ensure_ascii=False, indent=2), end="\n\n")
-
+        raise RuntimeError("AI model failed to generate accurate API calls")
+    
     return {
         "response": filtered_datasets
     }
@@ -201,11 +174,7 @@ def filter_decision_agent(state: BasicState):
         except:
             continue
     else:
-        raise RuntimeError("AI unable to select precise filter values.")
-
-    if state['debug']:
-        print("# filter_decision_agent\n")
-        print(json.dumps(response, ensure_ascii=False, indent=2), end="\n\n")
+        raise RuntimeError("AI model cannot select accurate filter value")
 
     return {
         "response": response
@@ -214,7 +183,7 @@ def filter_decision_agent(state: BasicState):
 
 def analytics_execution_agent(state: BasicState):
     if state['debug']:
-        print("# analytics_execution_agent:\n")
+        print("4. I have selected the appropriate data and obtained suitable charts, now proceeding with detailed analysis.\n")
 
     state["at"].explore_tool(state['response'])
 
@@ -246,7 +215,7 @@ def interpretation_agent(state: BasicState):
     response = state["ai"].invoke(messages)
 
     if state['debug']:
-        print("# interpretation_agent:\n")
+        print("5.", end="")
         
     print(response.content)
 
