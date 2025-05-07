@@ -7,15 +7,12 @@ from . import node
 from operator import add
 from typing import Any, Dict, TypedDict, Annotated
 from .state import BasicState
-# import google_custom_search
 
 
 class AssistantGraph:
     def __init__(self):
         builder = StateGraph(BasicState)
 
-        builder.add_node("begin_node", node.begin_node)
-        # builder.add_node("google_search_agent", node.google_search_agent)
         builder.add_node("aralia_search_agent", node.aralia_search_agent)
         builder.add_node("analytics_planning_agent",
                          node.analytics_planning_agent)
@@ -25,10 +22,8 @@ class AssistantGraph:
                          node.analytics_execution_agent)
         builder.add_node("interpretation_agent", node.interpretation_agent)
 
-        builder.set_entry_point("begin_node")
+        builder.set_entry_point("aralia_search_agent")
 
-        builder.add_edge("begin_node", "aralia_search_agent")
-        # builder.add_edge("begin_node", "google_search_agent")
         builder.add_edge("aralia_search_agent", "analytics_planning_agent")
         builder.add_edge("analytics_planning_agent", "filter_decision_agent")
         builder.add_edge("filter_decision_agent",
