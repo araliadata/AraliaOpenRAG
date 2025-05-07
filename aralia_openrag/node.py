@@ -55,7 +55,7 @@ def aralia_search_agent(state: BasicState):
         print(
             textwrap.dedent(
                 f'''
-                    2.Filtered out the following datasets most relevant to the question {[item["name"] for item in filtered_datasets]}。
+                    2. Filtered out the following datasets most relevant to the question {[item["name"] for item in filtered_datasets]}。
                 '''
             )
         )
@@ -73,7 +73,7 @@ def analytics_planning_agent(state: BasicState):
     
 
     if state['debug']:
-        print("3.I am carefully analyzing which data to obtain for chart plotting, please wait a moment.\n")
+        print("3. I am carefully analyzing which data to obtain for chart plotting, please wait a moment.\n")
 
     plot_chart_prompt = prompts.chart_ploting_template.invoke(  # extract column
         {
@@ -215,7 +215,7 @@ def interpretation_agent(state: BasicState):
     response = state["ai"].invoke(messages)
 
     if state['debug']:
-        print("5.", end="")
+        print("5. ", end="")
         
     print(response.content)
 
