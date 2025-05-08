@@ -13,7 +13,7 @@ def aralia_search_agent(state: BasicState):
     # search multi dataset
     datasets = state["at"].search_tool(state["question"])
 
-    if state['debug']:
+    if state['verbose']:
         print(
             textwrap.dedent(
                 f'''
@@ -51,7 +51,7 @@ def aralia_search_agent(state: BasicState):
     else:
         raise RuntimeError("Unable to find datasets that could answer the question, program terminated")
 
-    if state['debug']:
+    if state['verbose']:
         print(
             textwrap.dedent(
                 f'''
@@ -72,7 +72,7 @@ def analytics_planning_agent(state: BasicState):
         raise RuntimeError("Unable to retrieve data from the searched planet, program terminated")
     
 
-    if state['debug']:
+    if state['verbose']:
         print("3. I am carefully analyzing which data to obtain for chart plotting, please wait a moment.\n")
 
     plot_chart_prompt = prompts.chart_ploting_template.invoke(  # extract column
@@ -134,7 +134,7 @@ def analytics_planning_agent(state: BasicState):
             ]
             break
         except Exception as e:
-            if state['debug']:
+            if state['verbose']:
                 print(f"Error occurred: {e}")
             continue
     else:
@@ -182,7 +182,7 @@ def filter_decision_agent(state: BasicState):
 
 
 def analytics_execution_agent(state: BasicState):
-    if state['debug']:
+    if state['verbose']:
         print("4. I have selected the appropriate data and obtained suitable charts, now proceeding with detailed analysis.\n")
 
     state["at"].explore_tool(state['response'])
@@ -214,7 +214,7 @@ def interpretation_agent(state: BasicState):
 
     response = state["ai"].invoke(messages)
 
-    if state['debug']:
+    if state['verbose']:
         print("5. ", end="")
         
     print(response.content)

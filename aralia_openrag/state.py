@@ -13,7 +13,7 @@ class BasicState(TypedDict):
     google: Any
     final_response: Any
     url: Any
-    debug: Any
+    verbose: Any
 
 
 # class AssistantState(BasicState):
