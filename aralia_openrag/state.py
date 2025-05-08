@@ -14,6 +14,7 @@ class BasicState(TypedDict):
     final_response: Any
     url: Any
     verbose: Any
+    interpretation_prompt: str
 
 
 # class AssistantState(BasicState):

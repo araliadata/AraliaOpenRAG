@@ -193,24 +193,25 @@ def analytics_execution_agent(state: BasicState):
     }
 
 def interpretation_agent(state: BasicState):
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a Senior Data Analyst with expertise in analyzing statistical data. You excel at uncovering insights from the data and identifying relationships between different datasets.",
-        },
-        {
-            "role": "user",
-            "content": f"""
-                Question: ***{state['question']}***
-                Information: {state['search_results']}
+    if state.get("interpretation_prompt"):
+        interpretation_prompt = state["interpretation_prompt"]
+    else:
+        interpretation_prompt ='''
+            I have already gathered relevant information based on the user's question.
+            Please analyze the information above in detail, then provide a detailed answer to the question, and give a conclusion within 300 words.
+            Please help me analyze this data carefully.
+            Please provide with English.
+        '''
 
-                I have already gathered relevant information based on the user's question.
-                Please analyze the information above in detail, then provide a detailed answer to the question, and give a conclusion within 300 words.
-                Please pay special attention that "json_data" is the actual retrieved data; please help me analyze this data carefully.
-                Please provide with English.
-            """,
-        },
-    ]
+
+    messages = f"""
+        Question: ***{state['question']}***
+        Information: {state['search_results']}
+
+        Please pay special attention that "json_data" is the actual retrieved data.
+
+        {interpretation_prompt}
+    """
 
     response = state["ai"].invoke(messages)
 
