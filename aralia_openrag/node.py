@@ -200,7 +200,7 @@ def interpretation_agent(state: BasicState):
             I have already gathered relevant information based on the user's question.
             Please analyze the information above in detail, then provide a detailed answer to the question, and give a conclusion within 300 words.
             Please help me analyze this data carefully.
-            Please provide with English.
+            Please provide with the question's language.
         '''
 
 
