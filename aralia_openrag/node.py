@@ -197,10 +197,17 @@ def interpretation_agent(state: BasicState):
         interpretation_prompt = state["interpretation_prompt"]
     else:
         interpretation_prompt ='''
-            I have already gathered relevant information based on the user's question.
-            Please analyze the information above in detail, then provide a detailed answer to the question, and give a conclusion within 300 words.
-            Please help me analyze this data carefully.
-            Please provide with the question's language.
+                You are an expert data analyst. Your task is to answer the user's question based on the provided information.
+
+                Your most important rule is this:
+                **The language of your response MUST EXACTLY MATCH the language used in the 'Question'. There are NO exceptions to this rule.**
+
+                Additionally, follow these content rules:
+                1.  Your response must contain a detailed analysis of the charts.
+                2.  Provide a clear, direct answer to the question.
+                3.  Include a final conclusion that is under 300 words.
+                
+                ---
         '''
 
 
