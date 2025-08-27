@@ -16,20 +16,27 @@ plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 class AraliaTools:
     # https://tw-air.araliadata.io/api
     
-    def __init__(self, username, password, url):
-        self.username = username
-        self.password = password
+    def __init__(self, sso_url=None, client_id=None, client_secret=None, url=None):
+        self.sso_url = sso_url
+        self.client_id = client_id
+        self.client_secret = client_secret
         self.official_url = url
         self.token = self.login()
 
     def login(self):
-        return requests.post(
-            "https://xwckbycddv4zlzeslemvhoh6sa0xoxcc.lambda-url.ap-southeast-1.on.aws/",
-            json={
-                "username": self.username,
-                "password": self.password
+        response = requests.post(
+            f"{self.sso_url.rstrip('/')}/realms/stellar/protocol/openid-connect/token",
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            data={
+                "grant_type": "client_credentials",
+                "client_id": self.client_id,
+                "client_secret": self.client_secret
             }
-        ).json().get("data")['accessToken']
+        )
+        response.raise_for_status()
+        return response.json()["access_token"]
 
     def get(self, url, query={}):
         """

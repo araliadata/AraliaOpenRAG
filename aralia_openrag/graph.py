@@ -66,6 +66,6 @@ class AssistantGraph:
                 api_key=api_key, model="gpt-4o", temperature=0)
             
         request['at'] = aralia_tools.AraliaTools(
-            request['username'], request['password'], request['url'])
+            request.get('sso_url'), request.get('client_id'), request.get('client_secret'), request['url'])
 
         return self.graph.invoke(request)
