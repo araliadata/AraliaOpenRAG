@@ -14,13 +14,13 @@ plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 
 
 class AraliaTools:
-    # https://tw-air.araliadata.io/api
+    # https://tw-air.araliadata.io
     
-    def __init__(self, sso_url=None, client_id=None, client_secret=None, url=None):
+    def __init__(self, sso_url=None, client_id=None, client_secret=None, stellar_url=None):
         self.sso_url = sso_url
         self.client_id = client_id
         self.client_secret = client_secret
-        self.official_url = url
+        self.stellar_url = stellar_url
         self.token = self.login()
 
     def login(self):
@@ -139,7 +139,7 @@ class AraliaTools:
 
     def search_tool(self, question: str):
         response = self.get(
-            self.official_url + "/galaxy/dataset", {
+            self.stellar_url + "/api/galaxy/dataset", {
                 "keyword": question,
                 "pageSize": 50
             }

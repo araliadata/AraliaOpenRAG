@@ -14,22 +14,22 @@ class AssistantGraph:
         builder = StateGraph(BasicState)
 
         builder.add_node("aralia_search_agent", node.aralia_search_agent)
-        builder.add_node("analytics_planning_agent",
-                         node.analytics_planning_agent)
-        builder.add_node("filter_decision_agent",
-                         node.filter_decision_agent)
-        builder.add_node("analytics_execution_agent",
-                         node.analytics_execution_agent)
-        builder.add_node("interpretation_agent", node.interpretation_agent)
+        # builder.add_node("analytics_planning_agent",
+        #                  node.analytics_planning_agent)
+        # builder.add_node("filter_decision_agent",
+        #                  node.filter_decision_agent)
+        # builder.add_node("analytics_execution_agent",
+        #                  node.analytics_execution_agent)
+        # builder.add_node("interpretation_agent", node.interpretation_agent)
 
         builder.set_entry_point("aralia_search_agent")
 
-        builder.add_edge("aralia_search_agent", "analytics_planning_agent")
-        builder.add_edge("analytics_planning_agent", "filter_decision_agent")
-        builder.add_edge("filter_decision_agent",
-                         "analytics_execution_agent")
-        builder.add_edge("analytics_execution_agent","interpretation_agent")
-        builder.add_edge("interpretation_agent", END)
+        # builder.add_edge("aralia_search_agent", "analytics_planning_agent")
+        # builder.add_edge("analytics_planning_agent", "filter_decision_agent")
+        # builder.add_edge("filter_decision_agent",
+        #                  "analytics_execution_agent")
+        # builder.add_edge("analytics_execution_agent","interpretation_agent")
+        builder.add_edge("aralia_search_agent", END)
 
         #   builder.add_edge("init", "explain_check")
         #   builder.add_conditional_edges(
@@ -66,6 +66,6 @@ class AssistantGraph:
                 api_key=api_key, model="gpt-4o", temperature=0)
             
         request['at'] = aralia_tools.AraliaTools(
-            request.get('sso_url'), request.get('client_id'), request.get('client_secret'), request['url'])
+            request.get('sso_url'), request['stellar_url'], request.get('client_id'), request.get('client_secret'))
 
         return self.graph.invoke(request)
