@@ -7,7 +7,6 @@ from core.state import GraphState, SearchResult, create_initial_state
 
 # Tools
 from tools.aralia import AraliaClient
-from tools.data_processing import DataProcessor
 
 # Nodes
 from nodes import (
@@ -39,8 +38,7 @@ __all__ = [
     "create_initial_state",
     
     # Tools
-    "AraliaClient", 
-    "DataProcessor",
+    "AraliaClient",
     
     # Nodes
     "SearchNode",

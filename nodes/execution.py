@@ -26,20 +26,13 @@ class ExecutionNode(BaseNode):
             print("4. I have selected the appropriate data and obtained suitable charts, now proceeding with detailed analysis.\n")
 
         # Execute exploration for each chart
-        from tools.data_processing import DataProcessor
-        
-        processor = DataProcessor()
-        
         for chart in state['response']:
             try:
                 # Execute exploration
                 results = state["at"].execute_exploration(chart)
                 
-                # Process results
-                x_cols = [x_axis.get('displayName', f"x{i}") for i, x_axis in enumerate(chart.get('x', []))]
-                y_cols = [y_axis.get('displayName', f"y{i}") for i, y_axis in enumerate(chart.get('y', []))]
-                
-                chart_data = processor.prepare_chart_data(results, {
+                # Process results using AraliaClient's built-in method
+                chart_data = state["at"].prepare_chart_data(results, {
                     'name': chart.get('name', 'chart'),
                     'x': chart.get('x', []),
                     'y': chart.get('y', [])
