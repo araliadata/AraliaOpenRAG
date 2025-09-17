@@ -21,7 +21,7 @@ def main():
         aralia_client_id=os.getenv("ARALIA_CLIENT_ID"),
         aralia_client_secret=os.getenv("ARALIA_CLIENT_SECRET"),
         verbose=True,
-        log_level="INFO"
+        log_level="WARNING"  # 減少日誌噪音
     )
     
     # Create assistant graph
@@ -93,4 +93,4 @@ def legacy_main():
 
 
 if __name__ == "__main__":
-    legacy_main()
+    main()

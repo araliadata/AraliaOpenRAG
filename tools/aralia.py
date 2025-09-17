@@ -172,6 +172,7 @@ class AraliaClient:
         self.logger.info(f"Found {len(response)} datasets")
         return response
     
+    
     def get_dataset_metadata(self, dataset_id: str, source_url: str) -> Optional[Dict[str, Any]]:
         """Get metadata for a specific dataset.
         
@@ -230,6 +231,7 @@ class AraliaClient:
             self.logger.error(f"Failed to fetch metadata for {dataset_id}: {str(e)}")
             return None
     
+    
     def get_filter_options(self, dataset_id: str, source_url: str, filter_columns: List[Dict[str, Any]]) -> None:
         """Get filter options for specified columns.
         
@@ -253,6 +255,7 @@ class AraliaClient:
             except Exception as e:
                 self.logger.error(f"Failed to get filter options for column {filter_column.get('columnID', 'unknown')}: {str(e)}")
                 filter_column['values'] = []
+    
     
     def execute_exploration(self, exploration_config: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Execute data exploration query.
@@ -281,6 +284,7 @@ class AraliaClient:
         except Exception as e:
             self.logger.error(f"Exploration failed for {dataset_id}: {str(e)}")
             return []
+    
 
 
 class AraliaSearchTool(BaseTool):

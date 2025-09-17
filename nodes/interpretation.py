@@ -56,11 +56,23 @@ class InterpretationNode(BaseNode):
                 {interpretation_prompt}
             """
         else:
-            # Use standard interpretation template
-            prompt_text = PromptTemplates.INTERPRETATION.invoke({
-                "question": question,
-                "search_results": search_results
-            }).text
+            # Use default interpretation prompt
+            prompt_text = f"""
+                Question: ***{question}***
+                Information: {search_results}
+
+                Please pay special attention that "json_data" is the actual retrieved data.
+
+                You are an expert data analyst. Your task is to answer the user's question based on the provided information.
+
+                Your most important rule is this:
+                **The language of your response MUST EXACTLY MATCH the language used in the 'Question'. There are NO exceptions to this rule.**
+
+                Additionally, follow these content rules:
+                1.  Your response must contain a detailed analysis of the charts.
+                2.  Provide a clear, direct answer to the question.
+                3.  Include a final conclusion that is under 300 words.
+            """
         
         # Get AI response
         ai_model = state["ai"]

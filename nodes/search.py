@@ -62,23 +62,23 @@ class SearchNode(BaseNode):
         
         # Search for datasets
         self.logger.info(f"Searching datasets for question: {question}")
-        datasets = aralia_client.search_datasets(question)
+        raw_datasets = aralia_client.search_datasets(question)
+        datasets = {item['id']: item for item in raw_datasets}
         
         if state.get("verbose", False):
             print(textwrap.dedent(f"""
                 I received your question: "{question}"
                 
                 To answer your question, I performed the following steps:
-                1. Searched for available datasets, initially finding {len(datasets)} datasets.
+                1. Searched for available datasets, initially finding {len(raw_datasets)} datasets.
             """), end="")
         
-        # Convert to indexed format for LLM processing
-        indexed_datasets = {item['id']: item for item in datasets}
+        # datasets is already indexed
         
         # Use LLM to filter relevant datasets
         extract_prompt = PromptTemplates.DATASET_EXTRACT.invoke({
             "question": question,
-            "datasets": indexed_datasets
+            "datasets": datasets
         })
         
         # Get structured LLM response
@@ -90,8 +90,8 @@ class SearchNode(BaseNode):
             try:
                 response = structured_llm.invoke(extract_prompt).dict()
                 filtered_datasets = [
-                    indexed_datasets[item] for item in response['dataset_key']
-                    if item in indexed_datasets
+                    datasets[item] for item in response['dataset_key']
+                    if item in datasets
                 ]
                 break
             except Exception as e:

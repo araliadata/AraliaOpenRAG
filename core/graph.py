@@ -63,25 +63,20 @@ class AraliaAssistantGraph:
         
         # Add nodes
         builder.add_node("aralia_search_agent", aralia_search_agent)
-        
-        # Future nodes (currently commented out but ready for activation)
-        # builder.add_node("analytics_planning_agent", analytics_planning_agent)
-        # builder.add_node("filter_decision_agent", filter_decision_agent)
-        # builder.add_node("analytics_execution_agent", analytics_execution_agent)
-        # builder.add_node("interpretation_agent", interpretation_agent)
+        builder.add_node("analytics_planning_agent", analytics_planning_agent)
+        builder.add_node("filter_decision_agent", filter_decision_agent)
+        builder.add_node("analytics_execution_agent", analytics_execution_agent)
+        builder.add_node("interpretation_agent", interpretation_agent)
         
         # Set entry point
         builder.set_entry_point("aralia_search_agent")
         
-        # Define edges (simple linear flow for now)
-        builder.add_edge("aralia_search_agent", END)
-        
-        # Future edges (ready for multi-step workflow)
-        # builder.add_edge("aralia_search_agent", "analytics_planning_agent")
-        # builder.add_edge("analytics_planning_agent", "filter_decision_agent")
-        # builder.add_edge("filter_decision_agent", "analytics_execution_agent")
-        # builder.add_edge("analytics_execution_agent", "interpretation_agent")
-        # builder.add_edge("interpretation_agent", END)
+        # Define edges
+        builder.add_edge("aralia_search_agent", "analytics_planning_agent")
+        builder.add_edge("analytics_planning_agent", "filter_decision_agent")
+        builder.add_edge("filter_decision_agent", "analytics_execution_agent")
+        builder.add_edge("analytics_execution_agent", "interpretation_agent")
+        builder.add_edge("interpretation_agent", END)
         
         # Compile graph with optional checkpointing
         compile_kwargs = {}
