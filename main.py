@@ -56,8 +56,6 @@ def main():
             # "interpretation_prompt": "Custom prompt for interpretation"
         })
         
-        print(f"\nFinal Response: {response.get('final_response', 'No response generated')}")
-        
     except Exception as e:
         print(f"Error: {str(e)}")
         print("Falling back to legacy interface...")

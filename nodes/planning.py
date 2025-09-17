@@ -56,14 +56,19 @@ class PlanningNode(BaseNode):
                     r'```json(.*?)```', response.content, re.DOTALL))[-1].group(1))
                 
                 # Process the response to match expected format
-                filtered_datasets = []
-                for chart in response_json["charts"]:
-                    chart_data = {
+                filtered_datasets = [
+                    {
                         **{k: v for k, v in datasets[chart['id']].items() if k != 'columns'},
                         "x": [
                             {
                                 **datasets[chart['id']]['columns'][x['columnID']],
                                 "format": x["format"]
+                                if x["type"] not in ["date", "datetime", "space"]
+                                else x["format"] if (
+                                    (x["type"] in ["date", "datetime"] and (x["format"] in PromptTemplates.get_format_options()["date"] or (_ := None))) or
+                                    (x["type"] == "space" and (x["format"] in PromptTemplates.get_format_options()["space"] or (_ := None)))
+                                )
+                                else x["format"]
                             }
                             for x in chart["x"]
                         ],
@@ -73,16 +78,26 @@ class PlanningNode(BaseNode):
                                 'calculation': y['calculation']
                             }
                             for y in chart['y'] 
+                            if y['type'] in ["integer", "float"] and (
+                                y['calculation'] in PromptTemplates.get_format_options()['calculation'] or (_ := None)  # Check calculation method
+                            )
                         ],
                         "filter": [
                             {
                                 **datasets[chart['id']]['columns'][f['columnID']],
                                 "format": f["format"]
+                                if f["type"] not in ["date", "datetime", "space"]
+                                else f["format"] if (
+                                    (f["type"] in ["date", "datetime"] and (f["format"] in PromptTemplates.get_format_options()["date"] or (_ := None))) or
+                                    (f["type"] == "space" and (f["format"] in PromptTemplates.get_format_options()["space"] or (_ := None)))
+                                )
+                                else f["format"]
                             }
                             for f in chart["filter"]
                         ]
                     }
-                    filtered_datasets.append(chart_data)
+                    for chart in response_json["charts"]
+                ]
                 break
             except Exception as e:
                 if state.get('verbose'):

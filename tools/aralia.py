@@ -224,6 +224,7 @@ class AraliaClient:
             
             return {
                 **metadata,
+                "sourceURL": source_url,
                 "columns": processed_columns
             }
             

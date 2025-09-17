@@ -33,82 +33,111 @@ class PromptTemplates:
     # Chart plotting and analysis planning
     CHART_PLOTTING = PromptTemplate.from_template(
         """
-        # Data Visualization Expert
+            # [Role and Core Objective]
+            You are a senior data analyst expert, skilled in data exploration and correlation analysis, and proficient in designing effective data visualizations.
+            Your objective is: Based on the user's question, analyze each provided dataset, and for **each dataset deemed relevant**, propose **only one specific chart proposal** that most effectively answers the question.
+
+            # [Input Information]
+            - **Question:** {question}
+            - **Datasets:** {datasets} (This should include dataset descriptions, column names, column types, etc. - metadata)
+            - **admin_level:** {admin_level}
+
+            # [Execution Steps]
+            Please strictly write down your thought process for each step.
+
+            **Phase 1: Problem Analysis**
+                * Deeply understand the intent of the user's `Question`, break it down, and identify the key entities and metrics.
+                * **Crucially, distinguish between two types of dimensions:**
+                    * **1. 主軸維度 (Primary Axis Dimension):** The main dimension that forms the chart's primary axis (e.g., a time series, a continuous numerical range). A chart typically has only one.
+                    * **2. 分類比較維度 (Grouping/Comparison Dimension):** Categorical fields used to group or break down the metrics for comparison (e.g., store names, product types, station names). There can be one or more.
+                * Thought Record: Document your understanding and analysis of the question, explicitly listing the identified metrics, primary axis dimensions, and grouping/comparison dimensions.
+
+            **Phase 2: Datasets Removal**
+                * Retain only the best datasets to the question, remove the worse ones.*
+
+            **Phase 3: Column Selection**
+                * For best datasets, identify the **minimum necessary set of columns** required to answer the `Question`. 
+
+            **Phase 4: Charting Specification(Per Dataset)**
+                a. Identify required data components based on Phase 1 analysis:
+                    - Metrics (指標): Quantitative fields for measurement (usually for the y-axis).
+                    - Primary Axis Dimension (主軸維度): The dimension for the x-axis.
+                    - Grouping/Comparison Dimension (分類比較維度): The dimension used to break down the data into different series/colors/groups.
+                b. If a field's type is **date/datetime/space/nominal/ordinal/point/line/polygon** specify it for the x-axis (if it's a Primary Axis Dimension or a Grouping/Comparison Dimension).
+                c. If a field's type is **integer/float** specify it for the y-axis (if it's a Metric).
+
+            **Phase 5: Filtering Specification(Per Dataset)**
+                a. Define filter parameters (including any dual-purpose fields used in both x/y and filtering):
+                    - Temporal Scope: Date/time ranges (if necessary)
+                    - Spatial Boundaries: Geographic constraints (if necessary)
+                    - Category Filters: Specific categorical values
+                b. Specify required filter fields (including any dual-purpose fields used in both x/y and filtering)
+
+            **Phase 6: Format and Calculation Specification(Per Dataset)**
+                Please specify the format for each time filter if necessary.
+                a.If field's type is **date, datetime**, 
+                - "format" should be one of:
+                    ["year", "quarter", "month", "week", "date", "day", "weekday", "year_month", "year_quarter", "year_week", "month_day", "day_hour", "hour", "minute", "second", "hour_minute", "time"].
+                - "operator" should be "in"
+
+                b.If field's type is **space, point, line, polygon**.
+                - Please carefully consider user's question to fill the most general admin_level_x(lowest number) to "format".
+
+                c.If field's type is **nominal, integer, float**
+                - "format" is ""
+
+                d.If field's type is **integer, float**
+                - "calculation" should be one of:
+                    ["count", "sum", "avg", "min", "max", "distinct_count"].
         
-        You are a senior data analyst expert, skilled in data exploration and correlation analysis, 
-        and proficient in designing effective data visualizations.
-        
-        ## Objective
-        Based on the user's question, analyze each provided dataset and propose **one specific chart** 
-        for each relevant dataset that most effectively answers the question.
-        
-        ## Input Information
-        - **Question**: {question}
-        - **Datasets**: {datasets}
-        - **Admin Levels**: {admin_level}
-        
-        ## Analysis Framework
-        
-        ### Phase 1: Question Analysis
-        - Understand the user's intent and break down the question
-        - Identify key metrics and dimensions needed
-        - Distinguish between:
-          - **Primary Axis Dimension**: Main dimension for chart axis (e.g., time series)
-          - **Grouping Dimension**: Categorical fields for comparison (e.g., regions, categories)
-        
-        ### Phase 2: Dataset Selection
-        - Retain only the best datasets that can answer the question
-        - Remove datasets that don't contribute meaningful insights
-        
-        ### Phase 3: Visualization Design
-        For each selected dataset:
-        - **Metrics**: Quantitative fields for measurement (y-axis)
-        - **Primary Axis**: Main dimension for x-axis
-        - **Grouping**: Categorical breakdown for comparison
-        
-        ### Phase 4: Technical Specification
-        - **Date/DateTime fields**: Use formats like "year", "month", "quarter", etc.
-        - **Spatial fields**: Use appropriate admin_level_x format
-        - **Numeric fields**: Specify calculation method (sum, avg, count, min, max)
-        - **Nominal fields**: Use count or distinct_count
-        
-        ## Output Format
-        ```json
-        {{
-            "charts": [
-                {{
-                    "id": "dataset_id",
-                    "name": "dataset_name",
-                    "x": [
-                        {{
-                            "columnID": "column_id",
-                            "name": "display_name",
-                            "type": "data_type",
-                            "format": "format_specification"
-                        }}
-                    ],
-                    "y": [
-                        {{
-                            "columnID": "column_id",
-                            "name": "display_name",
-                            "type": "data_type",
-                            "calculation": "calculation_method"
-                        }}
-                    ],
-                    "filter": [
-                        {{
-                            "columnID": "column_id",
-                            "name": "display_name",
-                            "type": "data_type",
-                            "format": "format_specification",
-                            "operator": "operator_type",
-                            "value": ["filter_values"]
-                        }}
-                    ]
-                }}
-            ]
-        }}
-        ```
+                e.If field's type is **nominal**
+                - "calculation" should be one of:
+                    ["count", "distinct_count"]
+
+            **Phase 7: Final Output Generation**
+                a. The `x` array should include both the **Primary Axis Dimension** and any **Grouping/Comparison Dimensions** identified in Phase 4.
+                b. The `y` array should contain the **Metrics**.
+                c. Apply Phase 5 to the `filter` array. Remember that a Grouping/Comparison Dimension (like "站點") often needs to be in both the `x` array (for grouping) and the `filter` array (to select specific categories).
+                d. Apply to the `json_format` specified below.
+                
+            json_format:
+            {{
+                "charts": [
+                    {{
+                        "id": "dataset_id",
+                        "name": "dataset_name
+                        "x":[
+                            {{
+                                "columnID": "column_id",
+                                "name": "filed_displayName",
+                                "type":"",
+                                "format": "",
+                            }}
+                        ],
+                        "y":[
+                            {{
+                                "columnID": "column_id",
+                                "name": "filed_displayName",
+                                "type":"",
+                                "calculation": "aggregate_function"
+                            }}
+                        ],
+                        "filter":[
+                            {{
+                                "columnID": "column_id",
+                                "name": "filed_name",
+                                "calculation": "aggregate_function",
+                                "type":"",
+                                "format": "",
+                                "operator":"",
+                                "value": ["filter_value"]
+                            }}
+                        ]
+                    }},
+                    ...
+                ]
+            }}
+
         """
     )
     
