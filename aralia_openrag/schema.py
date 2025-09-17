@@ -1,3 +1,6 @@
+# Legacy schema - kept for backward compatibility
+# New schemas are in schemas/models.py
+
 from pydantic import BaseModel
 from typing import List
 from typing_extensions import Literal, Annotated

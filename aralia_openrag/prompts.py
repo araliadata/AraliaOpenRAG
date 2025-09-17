@@ -1,3 +1,6 @@
+# Legacy prompts - kept for backward compatibility
+# New prompts are in schemas/prompts.py
+
 from langchain_core.prompts import PromptTemplate
 
 simple_datasets_extract_template = PromptTemplate.from_template(
