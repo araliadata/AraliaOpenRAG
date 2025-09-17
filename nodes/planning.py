@@ -26,6 +26,9 @@ class PlanningNode(BaseNode):
         import re
         from schemas.prompts import PromptTemplates
         
+        # Cache format options to avoid repeated calls
+        format_opts = PromptTemplates.get_format_options()
+        
         # Get metadata for each dataset
         datasets = {}
         for dataset in state['response']:
@@ -65,8 +68,8 @@ class PlanningNode(BaseNode):
                                 "format": x["format"]
                                 if x["type"] not in ["date", "datetime", "space"]
                                 else x["format"] if (
-                                    (x["type"] in ["date", "datetime"] and (x["format"] in PromptTemplates.get_format_options()["date"] or (_ := None))) or
-                                    (x["type"] == "space" and (x["format"] in PromptTemplates.get_format_options()["space"] or (_ := None)))
+                                    (x["type"] in ["date", "datetime"] and x["format"] in format_opts["date"]) or
+                                    (x["type"] == "space" and x["format"] in format_opts["space"])
                                 )
                                 else x["format"]
                             }
@@ -78,9 +81,7 @@ class PlanningNode(BaseNode):
                                 'calculation': y['calculation']
                             }
                             for y in chart['y'] 
-                            if y['type'] in ["integer", "float"] and (
-                                y['calculation'] in PromptTemplates.get_format_options()['calculation'] or (_ := None)  # Check calculation method
-                            )
+                            if y['type'] in ["integer", "float"] and y['calculation'] in format_opts['calculation']
                         ],
                         "filter": [
                             {
@@ -88,8 +89,8 @@ class PlanningNode(BaseNode):
                                 "format": f["format"]
                                 if f["type"] not in ["date", "datetime", "space"]
                                 else f["format"] if (
-                                    (f["type"] in ["date", "datetime"] and (f["format"] in PromptTemplates.get_format_options()["date"] or (_ := None))) or
-                                    (f["type"] == "space" and (f["format"] in PromptTemplates.get_format_options()["space"] or (_ := None)))
+                                    (f["type"] in ["date", "datetime"] and f["format"] in format_opts["date"]) or
+                                    (f["type"] == "space" and f["format"] in format_opts["space"])
                                 )
                                 else f["format"]
                             }
