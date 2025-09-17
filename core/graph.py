@@ -34,10 +34,27 @@ class AraliaAssistantGraph:
             include_timestamp=True
         )
         
+        # Create node instances
+        self._create_nodes()
         
         # Build the execution graph
         self.graph = self._build_graph()
         self.logger.info("Aralia Assistant Graph initialized")
+    
+    def _create_nodes(self):
+        """Create and initialize node instances."""
+        # Import node classes here to avoid circular imports
+        from nodes.search import SearchNode
+        from nodes.planning import PlanningNode  
+        from nodes.execution import ExecutionNode, FilterDecisionNode
+        from nodes.interpretation import InterpretationNode
+        
+        # Create node instances
+        self.search_node = SearchNode()
+        self.planning_node = PlanningNode()
+        self.filter_decision_node = FilterDecisionNode()
+        self.execution_node = ExecutionNode()
+        self.interpretation_node = InterpretationNode()
     
     def _build_graph(self) -> StateGraph:
         """Build the LangGraph execution graph.
@@ -45,17 +62,14 @@ class AraliaAssistantGraph:
         Returns:
             Compiled StateGraph instance
         """
-        # Import nodes here to avoid circular imports
-        from nodes import aralia_search_agent, analytics_planning_agent, analytics_execution_agent, filter_decision_agent, interpretation_agent
-        
         builder = StateGraph(GraphState)
         
-        # Add nodes
-        builder.add_node("aralia_search_agent", aralia_search_agent)
-        builder.add_node("analytics_planning_agent", analytics_planning_agent)
-        builder.add_node("filter_decision_agent", filter_decision_agent)
-        builder.add_node("analytics_execution_agent", analytics_execution_agent)
-        builder.add_node("interpretation_agent", interpretation_agent)
+        # Add nodes using instance attributes
+        builder.add_node("aralia_search_agent", self.search_node)
+        builder.add_node("analytics_planning_agent", self.planning_node)
+        builder.add_node("filter_decision_agent", self.filter_decision_node)
+        builder.add_node("analytics_execution_agent", self.execution_node)
+        builder.add_node("interpretation_agent", self.interpretation_node)
         
         # Set entry point
         builder.set_entry_point("aralia_search_agent")

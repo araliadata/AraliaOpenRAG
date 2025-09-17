@@ -89,17 +89,3 @@ class InterpretationNode(BaseNode):
         }
 
 
-# Create node instance and legacy function
-interpretation_node = InterpretationNode()
-
-@node_with_error_handling("interpretation_agent")
-def interpretation_agent(state: GraphState) -> Dict[str, Any]:
-    """Legacy function wrapper for interpretation node.
-    
-    Args:
-        state: Current graph state
-        
-    Returns:
-        State updates
-    """
-    return interpretation_node(state)

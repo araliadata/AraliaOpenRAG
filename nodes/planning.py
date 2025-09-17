@@ -110,17 +110,3 @@ class PlanningNode(BaseNode):
         return {"response": filtered_datasets}
 
 
-# Create node instance and legacy function
-planning_node = PlanningNode()
-
-@node_with_error_handling("analytics_planning_agent")
-def analytics_planning_agent(state: GraphState) -> Dict[str, Any]:
-    """Legacy function wrapper for planning node.
-    
-    Args:
-        state: Current graph state
-        
-    Returns:
-        State updates
-    """
-    return planning_node(state)

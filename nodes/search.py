@@ -121,17 +121,3 @@ class SearchNode(BaseNode):
         }
 
 
-# Create node instance and legacy function
-search_node = SearchNode()
-
-@node_with_error_handling("aralia_search_agent")
-def aralia_search_agent(state: GraphState) -> Dict[str, Any]:
-    """Legacy function wrapper for search node.
-    
-    Args:
-        state: Current graph state
-        
-    Returns:
-        State updates
-    """
-    return search_node(state)

@@ -102,30 +102,3 @@ class FilterDecisionNode(BaseNode):
         return {"response": response}
 
 
-# Create node instances and legacy functions
-execution_node = ExecutionNode()
-filter_decision_node = FilterDecisionNode()
-
-@node_with_error_handling("analytics_execution_agent")
-def analytics_execution_agent(state: GraphState) -> Dict[str, Any]:
-    """Legacy function wrapper for execution node.
-    
-    Args:
-        state: Current graph state
-        
-    Returns:
-        State updates
-    """
-    return execution_node(state)
-
-@node_with_error_handling("filter_decision_agent")
-def filter_decision_agent(state: GraphState) -> Dict[str, Any]:
-    """Legacy function wrapper for filter decision node.
-    
-    Args:
-        state: Current graph state
-        
-    Returns:
-        State updates
-    """
-    return filter_decision_node(state)
