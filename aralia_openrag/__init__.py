@@ -1,7 +1,7 @@
 """Aralia OpenRAG - A framework for building RAG applications with LLMs and data planets."""
 
 # Main classes
-from core.graph import AraliaAssistantGraph, AssistantGraph
+from core.graph import AraliaAssistantGraph
 from core.config import AraliaConfig
 from core.state import GraphState, SearchResult, create_initial_state
 
@@ -31,7 +31,7 @@ __version__ = "0.3.0"
 __all__ = [
     # Main classes
     "AraliaAssistantGraph",
-    "AssistantGraph",  # Legacy
+  # Legacy
     "AraliaConfig",
     "GraphState",
     "SearchResult",

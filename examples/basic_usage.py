@@ -49,36 +49,8 @@ def main():
             print(f"Error processing question: {str(e)}")
 
 
-def legacy_usage_example():
-    """Demonstrate backward compatibility with legacy interface."""
-    
-    # This should still work for existing code
-    from aralia_openrag.graph import AssistantGraph
-    
-    assistant_graph = AssistantGraph()
-    
-    question = '哪個縣市經呼氣檢測 0.16~0.25 mg/L或血液檢0.031%~0.05%酒駕死亡人數最多?'
-    
-    try:
-        response = assistant_graph({
-            "question": question,
-            "ai": os.getenv("GEMINI_API_KEY"),
-            "sso_url": "https://sso.araliadata.io",
-            "stellar_url": "https://tw-air.araliadata.io",
-            "client_id": os.getenv("ARALIA_CLIENT_ID"),
-            "client_secret": os.getenv("ARALIA_CLIENT_SECRET"),
-            "verbose": True,
-        })
-        
-        print(f"Legacy interface result: {response}")
-        
-    except Exception as e:
-        print(f"Legacy interface error: {str(e)}")
 
 
 if __name__ == "__main__":
-    print("=== New Interface Example ===")
+    print("=== Aralia OpenRAG Example ===")
     main()
-    
-    print("\n\n=== Legacy Interface Example ===")
-    legacy_usage_example()

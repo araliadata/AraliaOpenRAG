@@ -57,36 +57,6 @@ def main():
         
     except Exception as e:
         print(f"Error: {str(e)}")
-        print("Falling back to legacy interface...")
-        legacy_main()
-
-
-def legacy_main():
-    """Legacy main function for backward compatibility."""
-    from aralia_openrag.graph import AssistantGraph
-    
-    print("=== Using Legacy Interface ===")
-    
-    assistant_graph = AssistantGraph()
-    
-    question = '哪個縣市經呼氣檢測 0.16~0.25 mg/L或血液檢0.031%~0.05%酒駕死亡人數最多?請依照各縣市進行排序。'
-    
-    try:
-        assistant_graph(
-            {
-                "question": question,
-                "ai": os.getenv("GEMINI_API_KEY"), ## Advanced option: select and set different LLMs here
-                "sso_url": "https://sso.araliadata.io",
-                "stellar_url":"https://tw-air.araliadata.io",
-                "client_id": os.getenv("ARALIA_CLIENT_ID"),
-                "client_secret": os.getenv("ARALIA_CLIENT_SECRET"),
-                "verbose": True,
-                # "interpretation_prompt":"replace this text with custom prompt" ## Advanced option: uncomment to set a custom prompt for the interpretation agent
-            }
-        )
-        
-    except Exception as e:
-        print(f"Legacy interface also failed: {str(e)}")
 
 
 if __name__ == "__main__":

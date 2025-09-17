@@ -74,14 +74,9 @@ class GraphState(TypedDict):
     errors: Annotated[List[str], add]
     execution_metadata: Dict[str, Any]
     
-    # Legacy fields for backward compatibility
-    at: Optional[Any]  # AraliaTools instance
+    # Required for current implementation
+    at: Optional[Any]  # AraliaClient instance
     verbose: Optional[bool]
-    interpretation_prompt: Optional[str]
-    language: Optional[str]
-    url: Optional[Any]
-    google: Optional[Any]
-    condition: Optional[str]
 
 
 def create_initial_state(

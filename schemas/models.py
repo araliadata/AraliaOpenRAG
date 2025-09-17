@@ -65,12 +65,3 @@ class QueryList(BaseModel):
     querys: List[QueryConfig] = Field(..., description="List of query configurations")
 
 
-# Legacy aliases for backward compatibility
-datasets_extract_output = DatasetExtractOutput
-dataset_space_info = DatasetSpaceInfo
-dataset_space_info_list = DatasetSpaceInfoList
-x = XAxis
-y = YAxis
-filter = FilterConfig
-query = QueryConfig
-query_list = QueryList

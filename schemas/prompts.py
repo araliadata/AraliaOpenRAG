@@ -296,9 +296,3 @@ class PromptTemplates:
         }
 
 
-# Legacy aliases for backward compatibility
-simple_datasets_extract_template = PromptTemplates.DATASET_EXTRACT
-chart_ploting_template = PromptTemplates.CHART_PLOTTING
-query_generate_template = PromptTemplates.QUERY_GENERATION
-admin_level = PromptTemplates.get_admin_levels()
-format = PromptTemplates.get_format_options()
