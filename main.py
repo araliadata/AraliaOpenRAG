@@ -34,7 +34,6 @@ def main():
         '經呼氣檢測超過 0.80 mg/L或血液檢測超過 0.16%酒駕事故者平均年齡?',
         '請提供4月份台北區監理所「酒駕新制再犯」課程日期。',
         '請列出六都中經呼氣檢測 0.56~0.80 mg/L或血液檢測 0.111%~0.16%酒駕死亡及受傷人數。',
-        '各縣市死亡車禍的熱點地圖',
         'What is the average GDP growth rate of each state in Malaysia in 2019?',
         'What is the average GDP growth rate of each state in Malaysia in 2019 compared to their Gini coefficient?',
         '請提供4月份新北市監理所「酒駕新制再犯」課程日期。',
