@@ -10,12 +10,6 @@ from .state import GraphState, create_initial_state
 from .config import AraliaConfig
 from utils.logging import setup_logging, get_logger
 
-try:
-    from langgraph.checkpoint.sqlite import SqliteSaver
-    CHECKPOINT_AVAILABLE = True
-except ImportError:
-    CHECKPOINT_AVAILABLE = False
-    SqliteSaver = None
 
 
 class AraliaAssistantGraph:
@@ -40,11 +34,6 @@ class AraliaAssistantGraph:
             include_timestamp=True
         )
         
-        # Setup checkpointing if available and enabled
-        self.checkpointer = None
-        if CHECKPOINT_AVAILABLE and self.config.enable_checkpointing:
-            self.checkpointer = SqliteSaver.from_conn_string(":memory:")
-            self.logger.info("Checkpointing enabled")
         
         # Build the execution graph
         self.graph = self._build_graph()
@@ -78,16 +67,8 @@ class AraliaAssistantGraph:
         builder.add_edge("analytics_execution_agent", "interpretation_agent")
         builder.add_edge("interpretation_agent", END)
         
-        # Compile graph with optional checkpointing
-        compile_kwargs = {}
-        if self.checkpointer:
-            compile_kwargs["checkpointer"] = self.checkpointer
-            
-        # Add interruption points for debugging if verbose mode (only for active nodes)
-        # if self.config.verbose:
-        #     compile_kwargs["interrupt_before"] = ["analytics_planning_agent"]
-        
-        return builder.compile(**compile_kwargs)
+        # Compile graph
+        return builder.compile()
     
     def _create_llm_instance(self, api_key: str) -> Any:
         """Create appropriate LLM instance based on API key.

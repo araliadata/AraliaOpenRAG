@@ -35,7 +35,6 @@ class AraliaConfig(BaseSettings):
     verbose: bool = False
     
     # Advanced options
-    enable_checkpointing: bool = True
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     
     class Config:
