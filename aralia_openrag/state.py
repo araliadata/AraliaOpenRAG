@@ -12,8 +12,6 @@ class BasicState(TypedDict):
     at: Any  # aralia tools
     google: Any
     final_response: Any
-    sso_url: str
-    stellar_url: str
     verbose: Any
     interpretation_prompt: str
 

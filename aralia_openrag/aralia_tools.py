@@ -16,7 +16,7 @@ plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 class AraliaTools:
     # https://tw-air.araliadata.io
     
-    def __init__(self, sso_url=None, client_id=None, client_secret=None, stellar_url=None):
+    def __init__(self, sso_url=None, stellar_url=None, client_id=None, client_secret=None):
         self.sso_url = sso_url
         self.stellar_url = stellar_url
         self.client_id = client_id
