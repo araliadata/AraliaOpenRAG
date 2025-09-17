@@ -8,9 +8,7 @@ from typing import Dict, Any, Optional
 
 from .state import GraphState, create_initial_state
 from .config import AraliaConfig
-from ..nodes import aralia_search_agent, analytics_planning_agent, analytics_execution_agent, filter_decision_agent, interpretation_agent
-from ..tools.aralia import AraliaClient
-from ..utils.logging import setup_logging, get_logger
+from utils.logging import setup_logging, get_logger
 
 try:
     from langgraph.checkpoint.sqlite import SqliteSaver
@@ -58,6 +56,9 @@ class AraliaAssistantGraph:
         Returns:
             Compiled StateGraph instance
         """
+        # Import nodes here to avoid circular imports
+        from nodes import aralia_search_agent, analytics_planning_agent, analytics_execution_agent, filter_decision_agent, interpretation_agent
+        
         builder = StateGraph(GraphState)
         
         # Add nodes
@@ -87,9 +88,9 @@ class AraliaAssistantGraph:
         if self.checkpointer:
             compile_kwargs["checkpointer"] = self.checkpointer
             
-        # Add interruption points for debugging if verbose mode
-        if self.config.verbose:
-            compile_kwargs["interrupt_before"] = ["analytics_planning_agent"]
+        # Add interruption points for debugging if verbose mode (only for active nodes)
+        # if self.config.verbose:
+        #     compile_kwargs["interrupt_before"] = ["analytics_planning_agent"]
         
         return builder.compile(**compile_kwargs)
     
@@ -139,6 +140,9 @@ class AraliaAssistantGraph:
         
         # Create LLM instance
         llm_instance = self._create_llm_instance(api_key)
+        
+        # Import AraliaClient here to avoid circular imports
+        from tools.aralia import AraliaClient
         
         # Create Aralia client
         aralia_client = AraliaClient(
@@ -219,6 +223,9 @@ class AssistantGraph(AraliaAssistantGraph):
         """Initialize with default configuration."""
         super().__init__()
         
+        # Import nodes here to avoid circular imports
+        from nodes import aralia_search_agent
+        
         # Legacy behavior - create simple graph structure
         builder = StateGraph(GraphState)
         builder.add_node("aralia_search_agent", aralia_search_agent)
@@ -256,6 +263,9 @@ class AssistantGraph(AraliaAssistantGraph):
                 model="gpt-4o", 
                 temperature=0
             )
+        
+        # Import AraliaClient here to avoid circular imports
+        from tools.aralia import AraliaClient
         
         # Create Aralia client
         request['at'] = AraliaClient(

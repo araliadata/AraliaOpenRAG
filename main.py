@@ -13,7 +13,8 @@ load_dotenv()
 
 def main():
     """Main execution function using the new interface."""
-    from aralia_openrag import AraliaAssistantGraph, AraliaConfig
+    from core.graph import AraliaAssistantGraph
+    from core.config import AraliaConfig
     
     # Create configuration
     config = AraliaConfig(
@@ -92,4 +93,4 @@ def legacy_main():
 
 
 if __name__ == "__main__":
-    main()
+    legacy_main()

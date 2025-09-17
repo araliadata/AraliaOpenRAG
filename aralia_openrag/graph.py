@@ -1,268 +1,71 @@
-"""Main LangGraph implementation for Aralia OpenRAG."""
-
 from langgraph.graph import StateGraph, END
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
-from typing import Dict, Any, Optional
-
-from .state import GraphState, create_initial_state
-from .config import AraliaConfig
-from ..nodes import aralia_search_agent, analytics_planning_agent, analytics_execution_agent, filter_decision_agent, interpretation_agent
-from ..tools.aralia import AraliaClient
-from ..utils.logging import setup_logging, get_logger
-
-try:
-    from langgraph.checkpoint.sqlite import SqliteSaver
-    CHECKPOINT_AVAILABLE = True
-except ImportError:
-    CHECKPOINT_AVAILABLE = False
-    SqliteSaver = None
+from . import aralia_tools
+from . import node
+from operator import add
+from typing import Any, Dict, TypedDict, Annotated
+from .state import BasicState
 
 
-class AraliaAssistantGraph:
-    """Main LangGraph implementation following official best practices.
-    
-    This class orchestrates the multi-agent workflow for data analysis
-    using Aralia Data Planet and LLMs.
-    """
-    
-    def __init__(self, config: Optional[AraliaConfig] = None):
-        """Initialize the assistant graph.
-        
-        Args:
-            config: Configuration instance. If None, will create default config.
-        """
-        self.config = config or AraliaConfig()
-        self.logger = get_logger("assistant_graph")
-        
-        # Setup logging
-        setup_logging(
-            level=self.config.log_level,
-            include_timestamp=True
-        )
-        
-        # Setup checkpointing if available and enabled
-        self.checkpointer = None
-        if CHECKPOINT_AVAILABLE and self.config.enable_checkpointing:
-            self.checkpointer = SqliteSaver.from_conn_string(":memory:")
-            self.logger.info("Checkpointing enabled")
-        
-        # Build the execution graph
-        self.graph = self._build_graph()
-        self.logger.info("Aralia Assistant Graph initialized")
-    
-    def _build_graph(self) -> StateGraph:
-        """Build the LangGraph execution graph.
-        
-        Returns:
-            Compiled StateGraph instance
-        """
-        builder = StateGraph(GraphState)
-        
-        # Add nodes
-        builder.add_node("aralia_search_agent", aralia_search_agent)
-        
-        # Future nodes (currently commented out but ready for activation)
-        # builder.add_node("analytics_planning_agent", analytics_planning_agent)
-        # builder.add_node("filter_decision_agent", filter_decision_agent)
-        # builder.add_node("analytics_execution_agent", analytics_execution_agent)
-        # builder.add_node("interpretation_agent", interpretation_agent)
-        
-        # Set entry point
-        builder.set_entry_point("aralia_search_agent")
-        
-        # Define edges (simple linear flow for now)
-        builder.add_edge("aralia_search_agent", END)
-        
-        # Future edges (ready for multi-step workflow)
-        # builder.add_edge("aralia_search_agent", "analytics_planning_agent")
-        # builder.add_edge("analytics_planning_agent", "filter_decision_agent")
-        # builder.add_edge("filter_decision_agent", "analytics_execution_agent")
-        # builder.add_edge("analytics_execution_agent", "interpretation_agent")
-        # builder.add_edge("interpretation_agent", END)
-        
-        # Compile graph with optional checkpointing
-        compile_kwargs = {}
-        if self.checkpointer:
-            compile_kwargs["checkpointer"] = self.checkpointer
-            
-        # Add interruption points for debugging if verbose mode
-        if self.config.verbose:
-            compile_kwargs["interrupt_before"] = ["analytics_planning_agent"]
-        
-        return builder.compile(**compile_kwargs)
-    
-    def _create_llm_instance(self, api_key: str) -> Any:
-        """Create appropriate LLM instance based on API key.
-        
-        Args:
-            api_key: API key for the LLM service
-            
-        Returns:
-            LLM instance
-        """
-        llm_config = self.config.get_llm_config(api_key)
-        
-        if llm_config["provider"] == "anthropic":
-            return ChatAnthropic(
-                api_key=api_key,
-                model=llm_config["model"],
-                temperature=self.config.temperature
-            )
-        elif llm_config["provider"] == "google":
-            return ChatGoogleGenerativeAI(
-                api_key=api_key,
-                model=llm_config["model"], 
-                temperature=self.config.temperature
-            )
-        else:  # OpenAI
-            return ChatOpenAI(
-                api_key=api_key,
-                model=llm_config["model"],
-                temperature=self.config.temperature
-            )
-    
-    def _prepare_state(self, request: Dict[str, Any]) -> GraphState:
-        """Prepare initial state from request.
-        
-        Args:
-            request: Input request dictionary
-            
-        Returns:
-            Initial GraphState
-        """
-        # Extract API key and create LLM instance
-        api_key = request.get("ai")
-        if not api_key:
-            raise ValueError("Missing 'ai' field with API key in request")
-        
-        # Create LLM instance
-        llm_instance = self._create_llm_instance(api_key)
-        
-        # Create Aralia client
-        aralia_client = AraliaClient(
-            sso_url=request.get("sso_url", self.config.aralia_sso_url),
-            stellar_url=request.get("stellar_url", self.config.aralia_stellar_url),
-            client_id=request.get("client_id", self.config.aralia_client_id),
-            client_secret=request.get("client_secret", self.config.aralia_client_secret)
-        )
-        
-        # Create initial state
-        state = create_initial_state(
-            question=request["question"],
-            api_key=api_key,
-            aralia_sso_url=request.get("sso_url", self.config.aralia_sso_url),
-            aralia_stellar_url=request.get("stellar_url", self.config.aralia_stellar_url),
-            aralia_client_id=request.get("client_id", self.config.aralia_client_id),
-            aralia_client_secret=request.get("client_secret", self.config.aralia_client_secret),
-            verbose=request.get("verbose", self.config.verbose),
-            interpretation_prompt=request.get("interpretation_prompt"),
-            **{k: v for k, v in request.items() if k not in [
-                "question", "ai", "sso_url", "stellar_url", 
-                "client_id", "client_secret", "verbose", "interpretation_prompt"
-            ]}
-        )
-        
-        # Set LLM instance and Aralia client
-        state["ai"] = llm_instance
-        state["at"] = aralia_client
-        
-        return state
-    
-    def invoke(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute the graph with the given request.
-        
-        Args:
-            request: Input request containing question and configuration
-            
-        Returns:
-            Graph execution result
-        """
-        try:
-            # Validate required fields
-            if "question" not in request:
-                raise ValueError("Missing required field: 'question'")
-            
-            # Prepare initial state
-            initial_state = self._prepare_state(request)
-            
-            self.logger.info(f"Starting graph execution for question: {request['question']}")
-            
-            # Execute graph
-            result = self.graph.invoke(initial_state)
-            
-            self.logger.info("Graph execution completed successfully")
-            return result
-            
-        except Exception as e:
-            self.logger.error(f"Graph execution failed: {str(e)}", exc_info=True)
-            raise
-    
-    def __call__(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Make the graph callable (legacy interface).
-        
-        Args:
-            request: Input request
-            
-        Returns:
-            Graph execution result
-        """
-        return self.invoke(request)
-
-
-# Legacy class alias for backward compatibility
-class AssistantGraph(AraliaAssistantGraph):
-    """Legacy class name for backward compatibility."""
-    
+class AssistantGraph:
     def __init__(self):
-        """Initialize with default configuration."""
-        super().__init__()
-        
-        # Legacy behavior - create simple graph structure
-        builder = StateGraph(GraphState)
-        builder.add_node("aralia_search_agent", aralia_search_agent)
+        builder = StateGraph(BasicState)
+
+        builder.add_node("aralia_search_agent", node.aralia_search_agent)
+        builder.add_node("analytics_planning_agent",
+                         node.analytics_planning_agent)
+        builder.add_node("filter_decision_agent",
+                         node.filter_decision_agent)
+        builder.add_node("analytics_execution_agent",
+                         node.analytics_execution_agent)
+        builder.add_node("interpretation_agent", node.interpretation_agent)
+
         builder.set_entry_point("aralia_search_agent")
-        builder.add_edge("aralia_search_agent", END)
-        
+
+        builder.add_edge("aralia_search_agent", "analytics_planning_agent")
+        builder.add_edge("analytics_planning_agent", "filter_decision_agent")
+        builder.add_edge("filter_decision_agent",
+                         "analytics_execution_agent")
+        builder.add_edge("analytics_execution_agent","interpretation_agent")
+        builder.add_edge("interpretation_agent", END)
+
+        #   builder.add_edge("init", "explain_check")
+        #   builder.add_conditional_edges(
+        #       "explain_check",
+        #       lambda state: state['condition'],
+        #       {
+        #           "Yes": "explain",
+        #           "No": "advise_single_graph",
+        #           "NoQuestion": "no_question"
+        #       }
+        #   )
+        #   builder.add_edge("no_question", END)
+        #   builder.add_edge("explain", END)
+        #   builder.add_edge("advise_single_graph", "advise_adjust")
+
         self.graph = builder.compile()
-    
-    def __call__(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Legacy call interface.
-        
-        Args:
-            request: Input request
-            
-        Returns:
-            Graph execution result
-        """
-        # Convert API key to LLM instance
-        api_key = request["ai"]
+
+        # print(graph.get_graph().draw_mermaid()) #set['debug']
+
+    def __call__(self, request):
+        # 根據API key的前綴來判定使用哪家LLM
+        api_key = request['ai']
         if api_key.startswith('sk-ant-'):
+            # Anthropic Claude
             request['ai'] = ChatAnthropic(
-                api_key=api_key, 
-                model="claude-3-5-sonnet-20240620", 
-                temperature=0
-            )
+                api_key=api_key, model="claude-3-5-sonnet-20240620", temperature=0)
         elif api_key.startswith('AIza'):
+            # Google Gemini
             request['ai'] = ChatGoogleGenerativeAI(
-                api_key=api_key, 
-                model="gemini-2.0-flash", 
-                temperature=0
-            )
+                api_key=api_key, model="gemini-2.0-flash", temperature=0)
         else:
+            # 預設使用OpenAI
             request['ai'] = ChatOpenAI(
-                api_key=api_key, 
-                model="gpt-4o", 
-                temperature=0
-            )
-        
-        # Create Aralia client
-        request['at'] = AraliaClient(
-            sso_url=request.get('sso_url'),
-            stellar_url=request.get('stellar_url'),
-            client_id=request.get('client_id'),
-            client_secret=request.get('client_secret')
-        )
-        
+                api_key=api_key, model="gpt-4o", temperature=0)
+            
+        request['at'] = aralia_tools.AraliaTools(
+            request.get('sso_url'), request['stellar_url'], request.get('client_id'), request.get('client_secret'))
+
         return self.graph.invoke(request)

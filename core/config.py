@@ -43,6 +43,7 @@ class AraliaConfig(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+        extra = "ignore"  # Allow extra fields from environment
         
     def get_llm_config(self, api_key: str) -> dict:
         """Determine LLM configuration based on API key prefix.

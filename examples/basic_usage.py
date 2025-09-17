@@ -2,7 +2,8 @@
 
 import os
 from dotenv import load_dotenv
-from aralia_openrag import AraliaAssistantGraph, AraliaConfig
+from core.graph import AraliaAssistantGraph
+from core.config import AraliaConfig
 
 # Load environment variables
 load_dotenv()
@@ -52,7 +53,7 @@ def legacy_usage_example():
     """Demonstrate backward compatibility with legacy interface."""
     
     # This should still work for existing code
-    from aralia_openrag import AssistantGraph
+    from aralia_openrag.graph import AssistantGraph
     
     assistant_graph = AssistantGraph()
     

@@ -2,8 +2,8 @@
 
 from abc import ABC, abstractmethod
 from typing import Dict, Any
-from ..core.state import GraphState
-from ..utils.logging import get_logger
+from core.state import GraphState
+from utils.logging import get_logger
 
 
 class BaseNode(ABC):

@@ -18,9 +18,9 @@ class AraliaTools:
     
     def __init__(self, sso_url=None, client_id=None, client_secret=None, stellar_url=None):
         self.sso_url = sso_url
+        self.stellar_url = stellar_url
         self.client_id = client_id
         self.client_secret = client_secret
-        self.stellar_url = stellar_url
         self.token = self.login()
 
     def login(self):

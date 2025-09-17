@@ -2,9 +2,9 @@
 
 from typing import Dict, Any
 from .base import BaseNode
-from ..core.state import GraphState
-from ..schemas.prompts import PromptTemplates
-from ..utils.decorators import node_with_error_handling
+from core.state import GraphState
+from schemas.prompts import PromptTemplates
+from utils.decorators import node_with_error_handling
 
 
 class InterpretationNode(BaseNode):

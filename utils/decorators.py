@@ -4,7 +4,7 @@ import logging
 import time
 from functools import wraps
 from typing import Any, Callable, Dict, Optional, Type
-from ..core.state import GraphState
+from core.state import GraphState
 
 try:
     from langsmith import traceable
