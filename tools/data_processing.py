@@ -1,7 +1,6 @@
 """Data processing utilities for Aralia OpenRAG."""
 
 import pandas as pd
-import os
 from typing import List, Dict, Any, Optional
 from utils.logging import get_logger
 
@@ -61,34 +60,6 @@ class DataProcessor:
         self.logger.info(f"Parsed data into {len(result_df.columns)} columns")
         return result_df
     
-    def save_results_to_csv(
-        self,
-        data: pd.DataFrame,
-        filename: str,
-        output_dir: str = "csv_img"
-    ) -> str:
-        """Save DataFrame to CSV file.
-        
-        Args:
-            data: DataFrame to save
-            filename: Name of the output file
-            output_dir: Output directory
-            
-        Returns:
-            Path to saved file
-        """
-        # Create output directory if it doesn't exist
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Clean filename
-        clean_filename = filename.replace("/", "_") + ".csv"
-        file_path = os.path.join(output_dir, clean_filename)
-        
-        # Save to CSV
-        data.to_csv(file_path, index=False, encoding="utf-8-sig")
-        
-        self.logger.info(f"Saved results to: {file_path}")
-        return file_path
     
     def prepare_chart_data(
         self,
@@ -117,17 +88,12 @@ class DataProcessor:
             df = pd.DataFrame(exploration_results)
             parsed_df = self.parse_exploration_results(df, x_cols, y_cols)
             
-            # Save to CSV
-            chart_name = chart_config.get('name', 'chart_data')
-            csv_path = self.save_results_to_csv(parsed_df, chart_name)
-            
             # Prepare JSON data (limited to first 400 rows for performance)
             json_data = parsed_df.head(400).to_json(force_ascii=False, orient='records')
             
             return {
                 "data": parsed_df,
                 "json_data": json_data,
-                "csv_path": csv_path,
                 "row_count": len(parsed_df),
                 "column_count": len(parsed_df.columns)
             }

@@ -227,16 +227,6 @@ class AraliaTools:
             df = self.parseExploration(
                 pd.DataFrame(total_response), x_cols, y_cols)
 
-            folder = "csv_img"
-            os.makedirs(folder, exist_ok=True)
-
-            file_name = item['name'] + ".csv"
-            file_name = file_name.replace("/", "_")
-            file_path = os.path.join(folder, file_name)
-
-            df.to_csv(file_path,
-                      index=False, encoding="utf-8-sig")
-
             item["json_data"] = df.head(400).to_json(force_ascii=False)
 
 def landmark_tool(landmark_url, secret_key):

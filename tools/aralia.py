@@ -6,20 +6,10 @@ import json
 import base64
 import logging
 from typing import List, Dict, Any, Optional
-from pydantic import Field, BaseModel
 
 from utils.decorators import retry_on_failure
 from utils.logging import get_logger
 
-try:
-    from langchain.tools import BaseTool
-    LANGCHAIN_AVAILABLE = True
-except ImportError:
-    LANGCHAIN_AVAILABLE = False
-    # Fallback base class
-    class BaseTool(BaseModel):
-        name: str
-        description: str
 
 
 class AraliaClient:
@@ -288,36 +278,3 @@ class AraliaClient:
     
 
 
-class AraliaSearchTool(BaseTool):
-    """LangChain tool for searching Aralia datasets."""
-    
-    name: str = "aralia_dataset_search"
-    description: str = (
-        "Search for relevant datasets in Aralia Data Planet. "
-        "Input should be a search query describing the type of data needed."
-    )
-    
-    aralia_client: AraliaClient = Field(exclude=True)
-    
-    def _run(self, query: str) -> List[Dict[str, Any]]:
-        """Execute the search.
-        
-        Args:
-            query: Search query
-            
-        Returns:
-            List of matching datasets
-        """
-        return self.aralia_client.search_datasets(query)
-    
-    async def _arun(self, query: str) -> List[Dict[str, Any]]:
-        """Async execute the search.
-        
-        Args:
-            query: Search query
-            
-        Returns:
-            List of matching datasets
-        """
-        # For now, just call the sync version
-        return self._run(query)

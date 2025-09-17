@@ -6,7 +6,7 @@ from core.config import AraliaConfig
 from core.state import GraphState, SearchResult, create_initial_state
 
 # Tools
-from tools.aralia import AraliaClient, AraliaSearchTool
+from tools.aralia import AraliaClient
 from tools.data_processing import DataProcessor
 
 # Nodes
@@ -40,7 +40,6 @@ __all__ = [
     
     # Tools
     "AraliaClient", 
-    "AraliaSearchTool",
     "DataProcessor",
     
     # Nodes
