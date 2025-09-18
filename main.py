@@ -55,10 +55,6 @@ def main():
             # "interpretation_prompt": "Custom prompt for interpretation"
         })
         
-        # Display results
-        print(f"Question: {question}\n")
-        print(f"Answer: {response.get('final_response', 'No final response')}\n")
-        
         # Display token usage
         metadata = response.get('execution_metadata', {})
         total_usage = metadata.get('token_usage', {})
