@@ -15,7 +15,7 @@ from utils.logging import setup_logging, get_logger
 class AraliaAssistantGraph:
     """Main LangGraph implementation following official best practices.
     
-    This class orchestrates the multi-agent workflow for data analysis
+    This class orchestrates the multi-node workflow for data analysis
     using Aralia Data Planet and LLMs.
     """
     
@@ -65,21 +65,21 @@ class AraliaAssistantGraph:
         builder = StateGraph(GraphState)
         
         # Add nodes using instance attributes
-        builder.add_node("aralia_search_agent", self.search_node)
-        builder.add_node("analytics_planning_agent", self.planning_node)
-        builder.add_node("filter_decision_agent", self.filter_decision_node)
-        builder.add_node("analytics_execution_agent", self.execution_node)
-        builder.add_node("interpretation_agent", self.interpretation_node)
+        builder.add_node("aralia_search", self.search_node)
+        builder.add_node("analytics_planning", self.planning_node)
+        builder.add_node("filter_decision", self.filter_decision_node)
+        builder.add_node("analytics_execution", self.execution_node)
+        builder.add_node("interpretation", self.interpretation_node)
         
         # Set entry point
-        builder.set_entry_point("aralia_search_agent")
+        builder.set_entry_point("aralia_search")
         
         # Define edges
-        builder.add_edge("aralia_search_agent", "analytics_planning_agent")
-        builder.add_edge("analytics_planning_agent", "filter_decision_agent")
-        builder.add_edge("filter_decision_agent", "analytics_execution_agent")
-        builder.add_edge("analytics_execution_agent", "interpretation_agent")
-        builder.add_edge("interpretation_agent", END)
+        builder.add_edge("aralia_search", "analytics_planning")
+        builder.add_edge("analytics_planning", "filter_decision")
+        builder.add_edge("filter_decision", "analytics_execution")
+        builder.add_edge("analytics_execution", "interpretation")
+        builder.add_edge("interpretation", END)
         
         # Compile graph
         return builder.compile()

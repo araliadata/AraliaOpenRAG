@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 
 class PromptTemplates:
-    """Collection of prompt templates for different agents."""
+    """Collection of prompt templates for different nodes."""
     
     # Dataset search and filtering
     DATASET_EXTRACT = PromptTemplate.from_template(
