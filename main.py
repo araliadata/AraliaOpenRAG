@@ -55,6 +55,29 @@ def main():
             # "interpretation_prompt": "Custom prompt for interpretation"
         })
         
+        # Display results
+        print(f"Question: {question}\n")
+        print(f"Answer: {response.get('final_response', 'No final response')}\n")
+        
+        # Display token usage
+        metadata = response.get('execution_metadata', {})
+        total_usage = metadata.get('token_usage', {})
+        
+        if total_usage.get('total_tokens', 0) > 0:
+            print("=== Token Usage Summary ===")
+            print(f"Total Tokens: {total_usage['total_tokens']:,}")
+            print(f"Prompt Tokens: {total_usage['prompt_tokens']:,}")
+            print(f"Completion Tokens: {total_usage['completion_tokens']:,}")
+            
+            # Show per-node breakdown
+            node_usage = metadata.get('node_token_usage', {})
+            if node_usage:
+                print("\n=== Per-Node Token Usage ===")
+                for node_name, usage in node_usage.items():
+                    print(f"{node_name}: {usage['total_tokens']:,} tokens "
+                          f"(prompt: {usage['prompt_tokens']:,}, "
+                          f"completion: {usage['completion_tokens']:,})")
+        
     except Exception as e:
         print(f"Error: {str(e)}")
 

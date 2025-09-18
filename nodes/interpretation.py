@@ -78,14 +78,28 @@ class InterpretationNode(BaseNode):
         ai_model = state["ai"]
         response = ai_model.invoke(prompt_text)
         
+        # Track token usage for this node
+        token_update = self.track_token_usage(
+            state, 
+            response, 
+            prompt_text,
+            response.content
+        )
+        
         # Log and print response if verbose
         if state.get("verbose", False):
             print("5. ", end="")
         
         print(response.content)
         
-        return {
+        result = {
             "final_response": response.content
         }
+        
+        # Merge token usage with result
+        if token_update:
+            result.update(token_update)
+        
+        return result
 
 

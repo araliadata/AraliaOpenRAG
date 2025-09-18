@@ -15,7 +15,7 @@ class SearchNode(BaseNode):
     
     def __init__(self):
         """Initialize search node."""
-        super().__init__("search")
+        super().__init__("aralia_search")
     
     def validate_input(self, state: GraphState) -> bool:
         """Validate input for search node.
@@ -86,9 +86,20 @@ class SearchNode(BaseNode):
         structured_llm = ai_model.with_structured_output(DatasetExtractOutput)
         
         # Retry logic for LLM extraction
+        token_update = {}
         for attempt in range(5):
             try:
-                response = structured_llm.invoke(extract_prompt).dict()
+                llm_response = structured_llm.invoke(extract_prompt)
+                response = llm_response.dict()
+                
+                # Track token usage for this node
+                token_update = self.track_token_usage(
+                    state, 
+                    llm_response, 
+                    extract_prompt.text,
+                    str(response)
+                )
+                
                 filtered_datasets = [
                     datasets[item] for item in response['dataset_key']
                     if item in datasets
@@ -113,11 +124,17 @@ class SearchNode(BaseNode):
             "selected_dataset_count": len(filtered_datasets)
         })
         
-        return {
+        result = {
             "response": filtered_datasets,
             "search_results": filtered_datasets,
             "execution_metadata": execution_metadata,
             "at": aralia_client  # Preserve client for future use
         }
+        
+        # Merge token usage with result
+        if token_update:
+            result.update(token_update)
+        
+        return result
 
 

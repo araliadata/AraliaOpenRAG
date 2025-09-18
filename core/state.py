@@ -25,6 +25,19 @@ class SearchResult(BaseModel):
     relevance_score: Optional[float] = Field(None, description="Relevance score")
 
 
+class TokenUsage(BaseModel):
+    """Token usage tracking for LLM calls."""
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+
+    def add_usage(self, prompt: int, completion: int):
+        """Add token usage from a single LLM call."""
+        self.prompt_tokens += prompt
+        self.completion_tokens += completion
+        self.total_tokens += (prompt + completion)
+
+
 class ExecutionMetadata(BaseModel):
     """Metadata about the execution process.
     
@@ -34,12 +47,16 @@ class ExecutionMetadata(BaseModel):
         completed_nodes: List of completed node names
         total_datasets_found: Number of datasets found in search
         selected_dataset_count: Number of datasets selected for analysis
+        token_usage: Token usage tracking
+        node_token_usage: Token usage per node
     """
     start_time: datetime = Field(default_factory=datetime.now)
     current_node: Optional[str] = None
     completed_nodes: List[str] = Field(default_factory=list)
     total_datasets_found: int = 0
     selected_dataset_count: int = 0
+    token_usage: TokenUsage = Field(default_factory=TokenUsage)
+    node_token_usage: Dict[str, TokenUsage] = Field(default_factory=dict)
 
 
 class GraphState(TypedDict):

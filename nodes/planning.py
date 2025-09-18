@@ -11,7 +11,7 @@ class PlanningNode(BaseNode):
     
     def __init__(self):
         """Initialize planning node."""
-        super().__init__("planning")
+        super().__init__("analytics_planning")
     
     def execute(self, state: GraphState) -> Dict[str, Any]:
         """Execute analytics planning.
@@ -51,9 +51,18 @@ class PlanningNode(BaseNode):
             "admin_level": PromptTemplates.get_admin_levels()
         })
 
+        token_update = {}
         for _ in range(5):
             try:
                 response = state["ai"].invoke(plot_chart_prompt)
+                
+                # Track token usage for this node
+                token_update = self.track_token_usage(
+                    state, 
+                    response, 
+                    plot_chart_prompt.text,
+                    response.content
+                )
 
                 response_json = json.loads(list(re.finditer(
                     r'```json(.*?)```', response.content, re.DOTALL))[-1].group(1))
@@ -107,6 +116,11 @@ class PlanningNode(BaseNode):
         else:
             raise RuntimeError("AI model failed to generate accurate API calls")
         
-        return {"response": filtered_datasets}
+        # Merge token usage with result
+        result = {"response": filtered_datasets}
+        if token_update:
+            result.update(token_update)
+        
+        return result
 
 

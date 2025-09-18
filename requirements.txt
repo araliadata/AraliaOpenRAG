@@ -12,6 +12,9 @@ langchain-anthropic>=0.2.0
 langgraph>=0.3.31
 langsmith>=0.3.32
 
+# Token counting
+tiktoken>=0.8.0
+
 # Data processing
 pandas>=2.2.3
 numpy>=2.2.4

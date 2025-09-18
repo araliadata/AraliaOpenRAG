@@ -11,7 +11,7 @@ class ExecutionNode(BaseNode):
     
     def __init__(self):
         """Initialize execution node."""
-        super().__init__("execution")
+        super().__init__("analytics_execution")
     
     def execute(self, state: GraphState) -> Dict[str, Any]:
         """Execute data queries.
@@ -81,9 +81,20 @@ class FilterDecisionNode(BaseNode):
 
         structured_llm = state["ai"].with_structured_output(QueryList)
 
+        token_update = {}
         for _ in range(5):
             try:
-                response = structured_llm.invoke(prompt).dict()['querys']
+                llm_response = structured_llm.invoke(prompt)
+                response = llm_response.dict()['querys']
+                
+                # Track token usage for this node
+                token_update = self.track_token_usage(
+                    state, 
+                    llm_response, 
+                    prompt.text,
+                    str(response)
+                )
+                
                 for chart in response:
                     for x in chart["x"]:
                         if x["type"] not in {"date", "datetime", "space"}:
@@ -99,6 +110,12 @@ class FilterDecisionNode(BaseNode):
         else:
             raise RuntimeError("AI model cannot select accurate filter value")
 
-        return {"response": response}
+        result = {"response": response}
+        
+        # Merge token usage with result
+        if token_update:
+            result.update(token_update)
+        
+        return result
 
 
