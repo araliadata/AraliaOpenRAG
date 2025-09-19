@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="aralia_openrag",  # 套件名稱
-    version="0.2.0",  # 版本號
+    version="0.3.0",  # 版本號
     author="BigObject",
     author_email="oscarlee@bigobject.io",
     description="OpenRAG is a framework for building RAG applications with LLMs and data planets.",
