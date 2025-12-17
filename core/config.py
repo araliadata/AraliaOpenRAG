@@ -26,7 +26,7 @@ class AraliaConfig(BaseSettings):
     # Default LLM models
     openai_model: str = "gpt-4o"
     anthropic_model: str = "claude-3-5-sonnet-20240620"
-    google_model: str = "gemini-2.0-flash"
+    google_model: str = "gemini-2.5-flash"
     
     # Execution Configuration
     max_retries: int = 3
